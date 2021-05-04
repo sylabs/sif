@@ -10,6 +10,9 @@ executors:
   golang:
     docker:
       - image: golang:1.14
+  golangci-lint:
+    docker:
+      - image: golangci/golangci-lint:v1.27
 
 jobs:
   lint_markdown:
@@ -42,12 +45,9 @@ jobs:
           command: ./build.sh
 
   lint_source:
-    executor: golang
+    executor: golangci-lint
     steps:
       - checkout
-      - run:
-          name: Install golangci-lint
-          command: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.27.0
       - run:
           name: Check for Lint
           command: golangci-lint run
