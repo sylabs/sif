@@ -6,7 +6,7 @@ orbs:
 executors:
   node:
     docker:
-      - image: node:14-slim
+      - image: node:16-slim
   golang:
     docker:
       - image: golang:1.14
