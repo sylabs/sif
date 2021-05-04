@@ -1,6 +1,6 @@
 module github.com/sylabs/sif
 
-go 1.13
+go 1.15
 
 require (
 	github.com/satori/go.uuid v1.2.0
