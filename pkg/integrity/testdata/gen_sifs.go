@@ -1,3 +1,8 @@
+// Copyright (c) 2020-2021, Sylabs Inc. All rights reserved.
+// This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
+// distributed with the sources of this project regarding your rights to use or distribute this
+// software.
+
 package main
 
 import (
@@ -13,15 +18,20 @@ import (
 )
 
 func createImage(path string, dis []sif.DescriptorInput) error {
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
 	ci := sif.CreateInfo{
 		Pathname:   path,
 		Launchstr:  sif.HdrLaunch,
 		Sifversion: sif.HdrVersion,
-		ID:         uuid.NewV4(),
+		ID:         id,
 		InputDescr: dis,
 	}
 
-	_, err := sif.CreateContainer(ci)
+	_, err = sif.CreateContainer(ci)
 	return err
 }
 

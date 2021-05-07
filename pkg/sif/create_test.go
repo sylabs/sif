@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2020, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2021, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -60,12 +60,17 @@ func TestDataStructs(t *testing.T) {
 }
 
 func TestCreateContainer(t *testing.T) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// general info for the new SIF file creation
 	cinfo := CreateInfo{
 		Pathname:   "testdata/testcontainer.sif",
 		Launchstr:  HdrLaunch,
 		Sifversion: HdrVersion,
-		ID:         uuid.NewV4(),
+		ID:         id,
 	}
 
 	// test container creation without any input descriptors
