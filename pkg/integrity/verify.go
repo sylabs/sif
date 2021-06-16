@@ -58,6 +58,7 @@ func (e *SignatureNotValidError) Is(target error) bool {
 	return e.ID == t.ID || t.ID == 0
 }
 
+// VerifyResult is the interface that each verification result implements.
 type VerifyResult interface {
 	// Signature returns the ID of the signature object associated with the result.
 	Signature() uint32
@@ -520,7 +521,7 @@ func OptVerifyCallback(cb VerifyCallback) VerifierOpt {
 }
 
 // getTasks returns verification tasks corresponding to groupIDs and objectIDs.
-func getTasks(f *sif.FileImage, cb VerifyCallback, groupIDs []uint32, objectIDs []uint32) ([]verifyTask, error) {
+func getTasks(f *sif.FileImage, cb VerifyCallback, groupIDs, objectIDs []uint32) ([]verifyTask, error) {
 	t := make([]verifyTask, 0, len(groupIDs)+len(objectIDs))
 
 	for _, groupID := range groupIDs {
@@ -548,7 +549,7 @@ func getTasks(f *sif.FileImage, cb VerifyCallback, groupIDs []uint32, objectIDs 
 }
 
 // getLegacyTasks returns legacy verification tasks corresponding to groupIDs and objectIDs.
-func getLegacyTasks(f *sif.FileImage, cb VerifyCallback, groupIDs []uint32, objectIDs []uint32) ([]verifyTask, error) {
+func getLegacyTasks(f *sif.FileImage, cb VerifyCallback, groupIDs, objectIDs []uint32) ([]verifyTask, error) {
 	t := make([]verifyTask, 0, len(groupIDs)+len(objectIDs))
 
 	for _, groupID := range groupIDs {
