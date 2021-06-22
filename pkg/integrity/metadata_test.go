@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/sebdah/goldie/v2"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
