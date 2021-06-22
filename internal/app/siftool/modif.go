@@ -11,13 +11,13 @@ package siftool
 import (
 	"io"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 // New creates a new empty SIF file.
 func New(path string) error {
-	id, err := uuid.NewV4()
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/sylabs/sif/v2/pkg/integrity"
 	"github.com/sylabs/sif/v2/pkg/sif"
 	"golang.org/x/crypto/openpgp"
