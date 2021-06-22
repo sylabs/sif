@@ -11,27 +11,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/google/uuid"
 	"github.com/sylabs/sif/v2/pkg/integrity"
 	"github.com/sylabs/sif/v2/pkg/sif"
 	"golang.org/x/crypto/openpgp"
 )
 
 func createImage(path string, dis []sif.DescriptorInput) error {
-	id, err := uuid.NewV4()
-	if err != nil {
-		return err
-	}
-
-	ci := sif.CreateInfo{
-		Pathname:   path,
-		Launchstr:  sif.HdrLaunch,
-		Sifversion: sif.HdrVersion,
-		ID:         id,
-		InputDescr: dis,
-	}
-
-	_, err = sif.CreateContainer(ci)
+	_, err := sif.CreateContainer(path, sif.WithDescriptors(dis...))
 	return err
 }
 
