@@ -13,7 +13,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/internal/app/siftool"
+	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
 // Dump implements 'siftool dump' sub-command.

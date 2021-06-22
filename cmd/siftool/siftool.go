@@ -12,8 +12,8 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/pkg/sif"
-	"github.com/sylabs/sif/pkg/siftool"
+	"github.com/sylabs/sif/v2/pkg/sif"
+	"github.com/sylabs/sif/v2/pkg/siftool"
 )
 
 var version = "unknown"

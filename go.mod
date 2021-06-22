@@ -1,4 +1,4 @@
-module github.com/sylabs/sif
+module github.com/sylabs/sif/v2
 
 go 1.15
 

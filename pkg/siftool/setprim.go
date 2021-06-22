@@ -12,7 +12,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/internal/app/siftool"
+	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
 // Setprim implements 'siftool setprim' sub-command.

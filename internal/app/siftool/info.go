@@ -14,7 +14,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 // Header displays a SIF file global header.
