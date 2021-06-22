@@ -12,8 +12,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/internal/app/siftool"
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/v2/internal/app/siftool"
+	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 // Add implements 'siftool add' sub-command.

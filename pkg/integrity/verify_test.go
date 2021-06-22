@@ -12,7 +12,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/v2/pkg/sif"
 	"golang.org/x/crypto/openpgp"
 	pgperrors "golang.org/x/crypto/openpgp/errors"
 )

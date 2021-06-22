@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2021, Sylabs Inc. All rights reserved.
 // Copyright (c) 2018, Divya Cote <divya.cote@gmail.com> All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
@@ -10,7 +10,7 @@ package siftool
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/internal/app/siftool"
+	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
 // List implements 'siftool list' sub-command.
