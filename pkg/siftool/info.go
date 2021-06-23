@@ -16,8 +16,9 @@ import (
 	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// Info implements 'siftool info' sub-command.
-func Info() *cobra.Command {
+// getInfo returns a command that displays detailed information of an object descriptor from a SIF
+// image.
+func getInfo(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "info <descriptorid> <containerfile>",
 		Short: "Display detailed information of object descriptors",
