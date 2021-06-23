@@ -10,18 +10,17 @@ package siftool
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// Header implements 'siftool header' sub-command.
-func Header() *cobra.Command {
+// getHeader returns a command that displays the global SIF header.
+func getHeader(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "header <containerfile>",
 		Short: "Display SIF global headers",
 		Args:  cobra.ExactArgs(1),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return siftool.Header(args[0])
+			return co.app.Header(args[0])
 		},
 		DisableFlagsInUseLine: true,
 	}

@@ -12,11 +12,10 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// Del implements 'siftool del' sub-command.
-func Del() *cobra.Command {
+// getDel returns a command that deletes a data object from a SIF.
+func getDel(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "del <descriptorid> <containerfile>",
 		Short: "Delete a specified object descriptor and data from SIF file",
@@ -28,7 +27,7 @@ func Del() *cobra.Command {
 				return fmt.Errorf("while converting input descriptor id: %s", err)
 			}
 
-			return siftool.Del(args[1], uint32(id))
+			return co.app.Del(args[1], uint32(id))
 		},
 	}
 }

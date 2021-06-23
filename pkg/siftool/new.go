@@ -9,18 +9,17 @@ package siftool
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// New implements 'siftool new' sub-command.
-func New() *cobra.Command {
+// getNew returns a command that creates a new, empty SIF image.
+func getNew(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "new <containerfile>",
 		Short: "Create a new empty SIF image file",
 		Args:  cobra.ExactArgs(1),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return siftool.New(args[0])
+			return co.app.New(args[0])
 		},
 		DisableFlagsInUseLine: true,
 	}

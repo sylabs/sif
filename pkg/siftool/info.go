@@ -13,11 +13,11 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// Info implements 'siftool info' sub-command.
-func Info() *cobra.Command {
+// getInfo returns a command that displays detailed information of an object descriptor from a SIF
+// image.
+func getInfo(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "info <descriptorid> <containerfile>",
 		Short: "Display detailed information of object descriptors",
@@ -29,7 +29,7 @@ func Info() *cobra.Command {
 				return fmt.Errorf("while converting input descriptor id: %s", err)
 			}
 
-			return siftool.Info(args[1], uint32(id))
+			return co.app.Info(args[1], uint32(id))
 		},
 		DisableFlagsInUseLine: true,
 	}

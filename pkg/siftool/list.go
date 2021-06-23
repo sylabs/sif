@@ -10,18 +10,17 @@ package siftool
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/sylabs/sif/v2/internal/app/siftool"
 )
 
-// List implements 'siftool list' sub-command.
-func List() *cobra.Command {
+// getList returns a command that lists object descriptors from a SIF image.
+func getList(co commandOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "list <containerfile>",
 		Short: "List object descriptors from SIF files",
 		Args:  cobra.ExactArgs(1),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return siftool.List(args[0])
+			return co.app.List(args[0])
 		},
 		DisableFlagsInUseLine: true,
 	}
