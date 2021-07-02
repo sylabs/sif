@@ -1,7 +1,10 @@
-Set primary system partition
+Set the primary system partition in a SIF image.
 
 Usage:
-  siftool setprim <descriptorid> <containerfile>
+  siftool setprim <id> <sif_path>
+
+Examples:
+siftool setprim 1 image.sif
 
 Flags:
   -h, --help   help for setprim

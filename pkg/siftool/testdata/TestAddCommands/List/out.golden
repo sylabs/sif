@@ -1,7 +1,10 @@
-List object descriptors from SIF files
+List data objects from a SIF image.
 
 Usage:
-  siftool list <containerfile>
+  siftool list <sif_path>
+
+Examples:
+siftool list image.sif
 
 Flags:
   -h, --help   help for list
