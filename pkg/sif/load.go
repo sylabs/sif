@@ -48,11 +48,11 @@ func readDescriptors(r io.ReaderAt, fimg *FileImage) error {
 
 // isValidSif looks at key fields from the global header to assess SIF validity.
 func isValidSif(f *FileImage) error {
-	if got, want := trimZeroBytes(f.Header.Magic[:]), HdrMagic; got != want {
+	if got, want := trimZeroBytes(f.Header.Magic[:]), hdrMagic; got != want {
 		return fmt.Errorf("invalid SIF file: Magic |%v| want |%v|", got, want)
 	}
 
-	if got, want := trimZeroBytes(f.Header.Version[:]), HdrVersion; got > want {
+	if got, want := trimZeroBytes(f.Header.Version[:]), CurrentVersion.String(); got > want {
 		return fmt.Errorf("invalid SIF file: Version %s want <= %s", got, want)
 	}
 

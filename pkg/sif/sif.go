@@ -84,6 +84,7 @@ package sif
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"time"
@@ -93,27 +94,45 @@ import (
 
 // SIF header constants and quantities.
 const (
-	HdrLaunch       = "#!/usr/bin/env run-singularity\n"
-	HdrMagic        = "SIF_MAGIC" // SIF identification
-	HdrVersion      = "01"        // SIF SPEC VERSION
-	HdrArchUnknown  = "00"        // Undefined/Unsupported arch
-	HdrArch386      = "01"        // 386 (i[3-6]86) arch code
-	HdrArchAMD64    = "02"        // AMD64 arch code
-	HdrArchARM      = "03"        // ARM arch code
-	HdrArchARM64    = "04"        // AARCH64 arch code
-	HdrArchPPC64    = "05"        // PowerPC 64 arch code
-	HdrArchPPC64le  = "06"        // PowerPC 64 little-endian arch code
-	HdrArchMIPS     = "07"        // MIPS arch code
-	HdrArchMIPSle   = "08"        // MIPS little-endian arch code
-	HdrArchMIPS64   = "09"        // MIPS64 arch code
-	HdrArchMIPS64le = "10"        // MIPS64 little-endian arch code
-	HdrArchS390x    = "11"        // IBM s390x arch code
+	hdrLaunch     = "#!/usr/bin/env run-singularity\n"
+	hdrLaunchLen  = 32 // len("#!/usr/bin/env... ")
+	hdrMagic      = "SIF_MAGIC"
+	hdrMagicLen   = 10 // len("SIF_MAGIC")
+	hdrVersionLen = 3  // len("99")
+	hdrArchLen    = 3  // len("99")
+)
 
-	HdrLaunchLen  = 32 // len("#!/usr/bin/env... ")
-	HdrMagicLen   = 10 // len("SIF_MAGIC")
-	HdrVersionLen = 3  // len("99")
-	HdrArchLen    = 3  // len("99")
+// SpecVersion specifies a SIF specification version.
+type SpecVersion uint8
 
+func (v SpecVersion) String() string { return fmt.Sprintf("%02d", v) }
+func (v SpecVersion) bytes() []byte  { return []byte(v.String()) }
+
+// SIF specification versions.
+const (
+	version01 SpecVersion = iota + 1
+)
+
+// CurrentVersion specifies the current SIF specification version.
+const CurrentVersion = version01
+
+// SIF architecture values.
+const (
+	HdrArchUnknown  = "00" // Undefined/Unsupported arch
+	HdrArch386      = "01" // 386 (i[3-6]86) arch code
+	HdrArchAMD64    = "02" // AMD64 arch code
+	HdrArchARM      = "03" // ARM arch code
+	HdrArchARM64    = "04" // AARCH64 arch code
+	HdrArchPPC64    = "05" // PowerPC 64 arch code
+	HdrArchPPC64le  = "06" // PowerPC 64 little-endian arch code
+	HdrArchMIPS     = "07" // MIPS arch code
+	HdrArchMIPSle   = "08" // MIPS little-endian arch code
+	HdrArchMIPS64   = "09" // MIPS64 arch code
+	HdrArchMIPS64le = "10" // MIPS64 little-endian arch code
+	HdrArchS390x    = "11" // IBM s390x arch code
+)
+
+const (
 	DescrNumEntries   = 48                 // the default total number of available descriptors
 	DescrGroupMask    = 0xf0000000         // groups start at that offset
 	DescrUnusedGroup  = DescrGroupMask     // descriptor without a group
@@ -329,7 +348,7 @@ type Envvar struct{}
 type Partition struct {
 	Fstype   Fstype
 	Parttype Parttype
-	Arch     [HdrArchLen]byte // arch the image is built for
+	Arch     [hdrArchLen]byte // arch the image is built for
 }
 
 // Signature represents the SIF signature data object descriptor.
@@ -352,11 +371,11 @@ type CryptoMessage struct {
 
 // Header describes a loaded SIF file.
 type Header struct {
-	Launch [HdrLaunchLen]byte // #! shell execution line
+	Launch [hdrLaunchLen]byte // #! shell execution line
 
-	Magic   [HdrMagicLen]byte   // look for "SIF_MAGIC"
-	Version [HdrVersionLen]byte // SIF version
-	Arch    [HdrArchLen]byte    // arch the primary partition is built for
+	Magic   [hdrMagicLen]byte   // look for "SIF_MAGIC"
+	Version [hdrVersionLen]byte // SIF version
+	Arch    [hdrArchLen]byte    // arch the primary partition is built for
 	ID      uuid.UUID           // image unique identifier
 
 	Ctime int64 // image creation time
@@ -451,15 +470,6 @@ func (f *FileImage) DataSectionSize() uint64 { return uint64(f.Header.Datalen) }
 // header of the image.
 func (f *FileImage) GetHeaderIntegrityReader() io.Reader {
 	return f.Header.GetIntegrityReader()
-}
-
-// CreateInfo wraps all SIF file creation info needed.
-type CreateInfo struct {
-	Pathname   string            // the end result output filename
-	Launchstr  string            // the shell run command
-	Sifversion string            // the SIF specification version used
-	ID         uuid.UUID         // image unique identifier
-	InputDescr []DescriptorInput // slice of input info for descriptor creation
 }
 
 // DescriptorInput describes the common info needed to create a data object descriptor.

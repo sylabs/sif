@@ -11,25 +11,12 @@ package siftool
 import (
 	"io"
 
-	"github.com/google/uuid"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 // New creates a new empty SIF file.
 func (*App) New(path string) error {
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-
-	cinfo := sif.CreateInfo{
-		Pathname:   path,
-		Launchstr:  sif.HdrLaunch,
-		Sifversion: sif.HdrVersion,
-		ID:         id,
-	}
-
-	_, err = sif.CreateContainer(cinfo)
+	_, err := sif.CreateContainer(path)
 	return err
 }
 
