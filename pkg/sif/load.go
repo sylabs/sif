@@ -32,15 +32,15 @@ func readHeader(r io.ReaderAt, fimg *FileImage) error {
 // Read the descriptors from r and populate fimg.DescrArr.
 func readDescriptors(r io.ReaderAt, fimg *FileImage) error {
 	// Initialize descriptor array (slice) and read them all from file
-	fimg.DescrArr = make([]Descriptor, fimg.h.Dtotal)
-	if err := readBinaryAt(r, fimg.h.Descroff, &fimg.DescrArr); err != nil {
-		fimg.DescrArr = nil
+	fimg.descrArr = make([]Descriptor, fimg.h.Dtotal)
+	if err := readBinaryAt(r, fimg.h.Descroff, &fimg.descrArr); err != nil {
+		fimg.descrArr = nil
 		return fmt.Errorf("reading descriptor array from container file: %s", err)
 	}
 
 	descr, _, err := fimg.GetPartPrimSys()
 	if err == nil {
-		fimg.PrimPartID = descr.ID
+		fimg.primPartID = descr.ID
 	}
 
 	return nil
@@ -89,15 +89,13 @@ func LoadContainerFp(fp ReadWriter, rdonly bool) (fimg FileImage, err error) {
 	if fp == nil {
 		return fimg, fmt.Errorf("provided fp for file is invalid")
 	}
-	fimg.Fp = fp
+	fimg.fp = fp
 
-	info, err := fimg.Fp.Stat()
+	info, err := fimg.fp.Stat()
 	if err != nil {
 		return fimg, err
 	}
-	fimg.Filesize = info.Size()
-
-	fimg.Amodebuf = true // for backwards compat, true == !mmap
+	fimg.size = info.Size()
 
 	// read global header from SIF file
 	if err = readHeader(fp, &fimg); err != nil {
@@ -121,8 +119,6 @@ func LoadContainerFp(fp ReadWriter, rdonly bool) (fimg FileImage, err error) {
 // and extract various components like the global header, descriptors and even
 // perhaps data, depending on how much is read from the source.
 func LoadContainerReader(b *bytes.Reader) (fimg FileImage, err error) {
-	fimg.Amodebuf = true // for backwards compat, true == !mmap
-
 	// read global header from SIF file
 	if err = readHeader(b, &fimg); err != nil {
 		return
@@ -145,8 +141,8 @@ func LoadContainerReader(b *bytes.Reader) (fimg FileImage, err error) {
 // UnloadContainer closes the SIF container file and free associated resources if needed.
 func (fimg *FileImage) UnloadContainer() (err error) {
 	// if SIF data comes from file, not a slice buffer (see LoadContainer() variants)
-	if fimg.Fp != nil {
-		if err = fimg.Fp.Close(); err != nil {
+	if fimg.fp != nil {
+		if err = fimg.fp.Close(); err != nil {
 			return fmt.Errorf("closing SIF file failed, corrupted: don't use: %s", err)
 		}
 	}

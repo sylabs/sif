@@ -84,7 +84,6 @@ package sif
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -317,53 +316,6 @@ const (
 	DelCompact            // free the space used by data object
 )
 
-// Descriptor represents the SIF descriptor type.
-type Descriptor struct {
-	Datatype Datatype // informs of descriptor type
-	Used     bool     // is the descriptor in use
-	ID       uint32   // a unique id for this data object
-	Groupid  uint32   // object group this data object is related to
-	Link     uint32   // special link or relation to an id or group
-	Fileoff  int64    // offset from start of image file
-	Filelen  int64    // length of data in file
-	Storelen int64    // length of data + alignment to store data in file
-
-	Ctime int64                 // image creation time
-	Mtime int64                 // last modification time
-	UID   int64                 // Deprecated: UID exists for historical compatibility and should not be used.
-	GID   int64                 // Deprecated: GID exists for historical compatibility and should not be used.
-	Name  [DescrNameLen]byte    // descriptor name (string identifier)
-	Extra [DescrMaxPrivLen]byte // big enough for extra data below
-}
-
-// GetIntegrityReader returns an io.Reader that reads the integrity-protected fields from d.
-func (d *Descriptor) GetIntegrityReader(relativeID uint32) io.Reader {
-	fields := []interface{}{
-		d.Datatype,
-		d.Used,
-		relativeID,
-		d.Link,
-		d.Filelen,
-		d.Ctime,
-		d.UID,
-		d.GID,
-	}
-
-	// Encode endian-sensitive fields.
-	data := bytes.Buffer{}
-	for _, f := range fields {
-		if err := binary.Write(&data, binary.LittleEndian, f); err != nil {
-			panic(err) // (*bytes.Buffer).Write() is documented as always returning a nil error.
-		}
-	}
-
-	return io.MultiReader(
-		&data,
-		bytes.NewReader(d.Name[:]),
-		bytes.NewReader(d.Extra[:]),
-	)
-}
-
 // Deffile represents the SIF definition-file data object descriptor.
 type Deffile struct{}
 
@@ -449,14 +401,11 @@ type ReadWriter interface {
 
 // FileImage describes the representation of a SIF file in memory.
 type FileImage struct {
-	h          header        // the loaded SIF global header
-	Fp         ReadWriter    // file pointer of opened SIF file
-	Filesize   int64         // file size of the opened SIF file
-	Filedata   []byte        // Deprecated: Filedata exists for historical compatibility and should not be used.
-	Amodebuf   bool          // Deprecated: Amodebuf exists for historical compatibility and should not be used.
-	Reader     *bytes.Reader // Deprecated: Reader exists for historical compatibility and should not be used.
-	DescrArr   []Descriptor  // slice of loaded descriptors from SIF file
-	PrimPartID uint32        // ID of primary system partition if present
+	h          header       // the loaded SIF global header
+	fp         ReadWriter   // file pointer of opened SIF file
+	size       int64        // file size of the opened SIF file
+	descrArr   []Descriptor // slice of loaded descriptors from SIF file
+	primPartID uint32       // ID of primary system partition if present
 }
 
 // LaunchScript returns the image launch script.
@@ -499,6 +448,21 @@ func (f *FileImage) DataSectionSize() uint64 { return uint64(f.h.Datalen) }
 // header of the image.
 func (f *FileImage) GetHeaderIntegrityReader() io.Reader {
 	return f.h.GetIntegrityReader()
+}
+
+// WithDescriptors calls fn with each in-use descriptor in f.
+func (f *FileImage) WithDescriptors(fn func(d *Descriptor) error) error {
+	for i, d := range f.descrArr {
+		if !d.Used {
+			continue
+		}
+
+		if err := fn(&f.descrArr[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // DescriptorInput describes the common info needed to create a data object descriptor.

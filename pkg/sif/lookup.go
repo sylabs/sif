@@ -9,11 +9,7 @@ package sif
 
 import (
 	"bytes"
-	"encoding/binary"
 	"errors"
-	"fmt"
-	"io"
-	"strings"
 )
 
 // ErrNotFound is the code for when no search key is not found.
@@ -74,7 +70,7 @@ func GetGoArch(sifarch string) (goarch string) {
 func (fimg *FileImage) GetFromDescrID(id uint32) (*Descriptor, int, error) {
 	match := -1
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
@@ -90,7 +86,7 @@ func (fimg *FileImage) GetFromDescrID(id uint32) (*Descriptor, int, error) {
 		return nil, -1, ErrNotFound
 	}
 
-	return &fimg.DescrArr[match], match, nil
+	return &fimg.descrArr[match], match, nil
 }
 
 // GetPartFromGroup searches for partition descriptors inside a specific group.
@@ -99,13 +95,13 @@ func (fimg *FileImage) GetPartFromGroup(groupid uint32) ([]*Descriptor, []int, e
 	var indexes []int
 	var count int
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
 		if v.Datatype == DataPartition && v.Groupid == groupid {
 			indexes = append(indexes, i)
-			descrs = append(descrs, &fimg.DescrArr[i])
+			descrs = append(descrs, &fimg.descrArr[i])
 			count++
 		}
 	}
@@ -123,13 +119,13 @@ func (fimg *FileImage) GetSignFromGroup(groupid uint32) ([]*Descriptor, []int, e
 	var indexes []int
 	var count int
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
 		if v.Datatype == DataSignature && v.Groupid == groupid {
 			indexes = append(indexes, i)
-			descrs = append(descrs, &fimg.DescrArr[i])
+			descrs = append(descrs, &fimg.descrArr[i])
 			count++
 		}
 	}
@@ -146,13 +142,13 @@ func (fimg *FileImage) GetLinkedDescrsByType(id uint32, dataType Datatype) ([]*D
 	var descrs []*Descriptor
 	var indexes []int
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
 		if v.Datatype == dataType && v.Link == id {
 			indexes = append(indexes, i)
-			descrs = append(descrs, &fimg.DescrArr[i])
+			descrs = append(descrs, &fimg.descrArr[i])
 		}
 	}
 
@@ -169,13 +165,13 @@ func (fimg *FileImage) GetFromLinkedDescr(id uint32) ([]*Descriptor, []int, erro
 	var indexes []int
 	var count int
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
 		if v.Link == id {
 			indexes = append(indexes, i)
-			descrs = append(descrs, &fimg.DescrArr[i])
+			descrs = append(descrs, &fimg.descrArr[i])
 			count++
 		}
 	}
@@ -193,7 +189,7 @@ func (fimg *FileImage) GetFromDescr(descr Descriptor) ([]*Descriptor, []int, err
 	var indexes []int
 	var count int
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		} else {
@@ -229,7 +225,7 @@ func (fimg *FileImage) GetFromDescr(descr Descriptor) ([]*Descriptor, []int, err
 			}
 
 			indexes = append(indexes, i)
-			descrs = append(descrs, &fimg.DescrArr[i])
+			descrs = append(descrs, &fimg.descrArr[i])
 			count++
 		}
 	}
@@ -241,147 +237,13 @@ func (fimg *FileImage) GetFromDescr(descr Descriptor) ([]*Descriptor, []int, err
 	return descrs, indexes, nil
 }
 
-// GetData returns the data object associated with descriptor d from f.
-func (d *Descriptor) GetData(f *FileImage) ([]byte, error) {
-	b := make([]byte, d.Filelen)
-	if _, err := io.ReadFull(d.GetReader(f), b); err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-// GetReader returns a io.Reader that reads the data object associated with descriptor d from f.
-func (d *Descriptor) GetReader(f *FileImage) io.Reader {
-	return io.NewSectionReader(f.Fp, d.Fileoff, d.Filelen)
-}
-
-// GetName returns the name tag associated with the descriptor. Analogous to file name.
-func (d *Descriptor) GetName() string {
-	return strings.TrimRight(string(d.Name[:]), "\000")
-}
-
-// GetFsType extracts the Fstype field from the Extra field of a Partition Descriptor.
-func (d *Descriptor) GetFsType() (Fstype, error) {
-	if d.Datatype != DataPartition {
-		return -1, fmt.Errorf("expected DataPartition, got %v", d.Datatype)
-	}
-
-	var pinfo Partition
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &pinfo); err != nil {
-		return -1, fmt.Errorf("while extracting Partition extra info: %s", err)
-	}
-
-	return pinfo.Fstype, nil
-}
-
-// GetPartType extracts the Parttype field from the Extra field of a Partition Descriptor.
-func (d *Descriptor) GetPartType() (Parttype, error) {
-	if d.Datatype != DataPartition {
-		return -1, fmt.Errorf("expected DataPartition, got %v", d.Datatype)
-	}
-
-	var pinfo Partition
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &pinfo); err != nil {
-		return -1, fmt.Errorf("while extracting Partition extra info: %s", err)
-	}
-
-	return pinfo.Parttype, nil
-}
-
-// GetArch extracts the Arch field from the Extra field of a Partition Descriptor.
-func (d *Descriptor) GetArch() ([hdrArchLen]byte, error) {
-	if d.Datatype != DataPartition {
-		return [hdrArchLen]byte{}, fmt.Errorf("expected DataPartition, got %v", d.Datatype)
-	}
-
-	var pinfo Partition
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &pinfo); err != nil {
-		return [hdrArchLen]byte{}, fmt.Errorf("while extracting Partition extra info: %s", err)
-	}
-
-	return pinfo.Arch, nil
-}
-
-// GetHashType extracts the Hashtype field from the Extra field of a Signature Descriptor.
-func (d *Descriptor) GetHashType() (Hashtype, error) {
-	if d.Datatype != DataSignature {
-		return -1, fmt.Errorf("expected DataSignature, got %v", d.Datatype)
-	}
-
-	var sinfo Signature
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &sinfo); err != nil {
-		return -1, fmt.Errorf("while extracting Signature extra info: %s", err)
-	}
-
-	return sinfo.Hashtype, nil
-}
-
-// GetEntity extracts the signing entity field from the Extra field of a Signature Descriptor.
-func (d *Descriptor) GetEntity() ([]byte, error) {
-	if d.Datatype != DataSignature {
-		return nil, fmt.Errorf("expected DataSignature, got %v", d.Datatype)
-	}
-
-	var sinfo Signature
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &sinfo); err != nil {
-		return nil, fmt.Errorf("while extracting Signature extra info: %s", err)
-	}
-
-	return sinfo.Entity[:], nil
-}
-
-// GetEntityString returns the string version of the stored entity.
-func (d *Descriptor) GetEntityString() (string, error) {
-	fingerprint, err := d.GetEntity()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%0X", fingerprint[:20]), nil
-}
-
-// GetFormatType extracts the Formattype field from the Extra field of a Cryptographic Message Descriptor.
-func (d *Descriptor) GetFormatType() (Formattype, error) {
-	if d.Datatype != DataCryptoMessage {
-		return -1, fmt.Errorf("expected DataCryptoMessage, got %v", d.Datatype)
-	}
-
-	var cinfo CryptoMessage
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &cinfo); err != nil {
-		return -1, fmt.Errorf("while extracting Crypto extra info: %s", err)
-	}
-
-	return cinfo.Formattype, nil
-}
-
-// GetMessageType extracts the Messagetype field from the Extra field of a Cryptographic Message Descriptor.
-func (d *Descriptor) GetMessageType() (Messagetype, error) {
-	if d.Datatype != DataCryptoMessage {
-		return -1, fmt.Errorf("expected DataCryptoMessage, got %v", d.Datatype)
-	}
-
-	var cinfo CryptoMessage
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &cinfo); err != nil {
-		return -1, fmt.Errorf("while extracting Crypto extra info: %s", err)
-	}
-
-	return cinfo.Messagetype, nil
-}
-
 // GetPartPrimSys returns the primary system partition if present. There should
 // be only one primary system partition in a SIF file.
 func (fimg *FileImage) GetPartPrimSys() (*Descriptor, int, error) {
 	var descr *Descriptor
 	index := -1
 
-	for i, v := range fimg.DescrArr {
+	for i, v := range fimg.descrArr {
 		if !v.Used {
 			continue
 		}
@@ -395,7 +257,7 @@ func (fimg *FileImage) GetPartPrimSys() (*Descriptor, int, error) {
 					return nil, -1, ErrMultValues
 				}
 				index = i
-				descr = &fimg.DescrArr[i]
+				descr = &fimg.descrArr[i]
 			}
 		}
 	}
