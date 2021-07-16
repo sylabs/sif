@@ -196,35 +196,35 @@ func writeHeader(fimg *FileImage) error {
 
 // createOpts accumulates container creation options.
 type createOpts struct {
-	ID         uuid.UUID
-	InputDescr []DescriptorInput
-	GetTime    func() time.Time
+	id  uuid.UUID
+	dis []DescriptorInput
+	t   time.Time
 }
 
 // CreateOpt are used to specify container creation options.
 type CreateOpt func(*createOpts) error
 
-// WithID specifies id as the unique ID.
-func WithID(id string) CreateOpt {
+// OptCreateWithID specifies id as the unique ID.
+func OptCreateWithID(id string) CreateOpt {
 	return func(co *createOpts) error {
 		id, err := uuid.Parse(id)
-		co.ID = id
+		co.id = id
 		return err
 	}
 }
 
-// WithDescriptors appends dis to the list of descriptors.
-func WithDescriptors(dis ...DescriptorInput) CreateOpt {
+// OptCreateWithDescriptors appends dis to the list of descriptors.
+func OptCreateWithDescriptors(dis ...DescriptorInput) CreateOpt {
 	return func(co *createOpts) error {
-		co.InputDescr = append(co.InputDescr, dis...)
+		co.dis = append(co.dis, dis...)
 		return nil
 	}
 }
 
-// WithTimeFunc specifies fn as the function to obtain timestamps.
-func WithTimeFunc(fn func() time.Time) CreateOpt {
+// OptCreateWithTime specifies t as the creation time.
+func OptCreateWithTime(t time.Time) CreateOpt {
 	return func(co *createOpts) error {
-		co.GetTime = fn
+		co.t = t
 		return nil
 	}
 }
@@ -237,8 +237,8 @@ func CreateContainer(path string, opts ...CreateOpt) (*FileImage, error) {
 	}
 
 	co := createOpts{
-		ID:      id,
-		GetTime: time.Now,
+		id: id,
+		t:  time.Now(),
 	}
 
 	for _, opt := range opts {
@@ -246,8 +246,6 @@ func CreateContainer(path string, opts ...CreateOpt) (*FileImage, error) {
 			return nil, err
 		}
 	}
-
-	t := co.GetTime()
 
 	f := &FileImage{}
 	f.descrArr = make([]Descriptor, DescrNumEntries)
@@ -257,9 +255,9 @@ func CreateContainer(path string, opts ...CreateOpt) (*FileImage, error) {
 	copy(f.h.Magic[:], hdrMagic)
 	copy(f.h.Version[:], CurrentVersion.bytes())
 	copy(f.h.Arch[:], HdrArchUnknown)
-	f.h.ID = id
-	f.h.Ctime = t.Unix()
-	f.h.Mtime = t.Unix()
+	f.h.ID = co.id
+	f.h.Ctime = co.t.Unix()
+	f.h.Mtime = co.t.Unix()
 	f.h.Dfree = DescrNumEntries
 	f.h.Dtotal = DescrNumEntries
 	f.h.Descroff = DescrStartOffset
@@ -277,7 +275,7 @@ func CreateContainer(path string, opts ...CreateOpt) (*FileImage, error) {
 		return nil, fmt.Errorf("setting file offset pointer to DataStartOffset: %s", err)
 	}
 
-	for _, v := range co.InputDescr {
+	for _, v := range co.dis {
 		if err := createDescriptor(f, v); err != nil {
 			return nil, err
 		}
@@ -348,29 +346,29 @@ func resetDescriptor(fimg *FileImage, index int) error {
 }
 
 // AddObject add a new data object and its descriptor into the specified SIF file.
-func (fimg *FileImage) AddObject(input DescriptorInput) error {
+func (f *FileImage) AddObject(input DescriptorInput) error {
 	// set file pointer to the end of data section
-	if _, err := fimg.fp.Seek(fimg.h.Dataoff+fimg.h.Datalen, io.SeekStart); err != nil {
+	if _, err := f.fp.Seek(f.h.Dataoff+f.h.Datalen, io.SeekStart); err != nil {
 		return fmt.Errorf("setting file offset pointer to DataStartOffset: %s", err)
 	}
 
 	// create a new descriptor entry from input data
-	if err := createDescriptor(fimg, input); err != nil {
+	if err := createDescriptor(f, input); err != nil {
 		return err
 	}
 
 	// write down the descriptor array
-	if err := writeDescriptors(fimg); err != nil {
+	if err := writeDescriptors(f); err != nil {
 		return err
 	}
 
-	fimg.h.Mtime = time.Now().Unix()
+	f.h.Mtime = time.Now().Unix()
 	// write down global header to file
-	if err := writeHeader(fimg); err != nil {
+	if err := writeHeader(f); err != nil {
 		return err
 	}
 
-	if err := fimg.fp.Sync(); err != nil {
+	if err := f.fp.Sync(); err != nil {
 		return fmt.Errorf("while sync'ing new data object to SIF file: %s", err)
 	}
 
@@ -412,48 +410,48 @@ func compactAtDescr(fimg *FileImage, descr *Descriptor) error {
 // data object is free'd and can be reused later. There's currently 2 clean mode specified
 // by flags: DelZero, to zero out the data region for security and DelCompact to
 // remove and shink the file compacting the unused area.
-func (fimg *FileImage) DeleteObject(id uint32, flags int) error {
-	descr, index, err := fimg.GetFromDescrID(id)
+func (f *FileImage) DeleteObject(id uint32, flags int) error {
+	descr, index, err := f.GetFromDescrID(id)
 	if err != nil {
 		return err
 	}
 
 	switch flags {
 	case DelZero:
-		if err = zeroData(fimg, descr); err != nil {
+		if err = zeroData(f, descr); err != nil {
 			return err
 		}
 	case DelCompact:
-		if objectIsLast(fimg, descr) {
-			if err = compactAtDescr(fimg, descr); err != nil {
+		if objectIsLast(f, descr) {
+			if err = compactAtDescr(f, descr); err != nil {
 				return err
 			}
 		} else {
 			return fmt.Errorf("method (DelCompact) not implemented yet")
 		}
 	default:
-		if objectIsLast(fimg, descr) {
-			if err = compactAtDescr(fimg, descr); err != nil {
+		if objectIsLast(f, descr) {
+			if err = compactAtDescr(f, descr); err != nil {
 				return err
 			}
 		}
 	}
 
 	// update some global header fields from deleting this descriptor
-	fimg.h.Dfree++
-	fimg.h.Mtime = time.Now().Unix()
+	f.h.Dfree++
+	f.h.Mtime = time.Now().Unix()
 
 	// zero out the unused descriptor
-	if err = resetDescriptor(fimg, index); err != nil {
+	if err = resetDescriptor(f, index); err != nil {
 		return err
 	}
 
 	// update global header
-	if err = writeHeader(fimg); err != nil {
+	if err = writeHeader(f); err != nil {
 		return err
 	}
 
-	if err := fimg.fp.Sync(); err != nil {
+	if err := f.fp.Sync(); err != nil {
 		return fmt.Errorf("while sync'ing deleted data object to SIF file: %s", err)
 	}
 
@@ -503,8 +501,8 @@ func (di *DescriptorInput) SetCryptoMsgExtra(format Formattype, message Messaget
 }
 
 // SetPrimPart sets the specified system partition to be the primary one.
-func (fimg *FileImage) SetPrimPart(id uint32) error {
-	descr, _, err := fimg.GetFromDescrID(id)
+func (f *FileImage) SetPrimPart(id uint32) error {
+	descr, _, err := f.GetFromDescrID(id)
 	if err != nil {
 		return err
 	}
@@ -527,7 +525,7 @@ func (fimg *FileImage) SetPrimPart(id uint32) error {
 		return fmt.Errorf("partition must be of system type")
 	}
 
-	olddescr, _, err := fimg.GetPartPrimSys()
+	olddescr, _, err := f.GetPartPrimSys()
 	if err != nil && err != ErrNotFound {
 		return err
 	}
@@ -542,8 +540,8 @@ func (fimg *FileImage) SetPrimPart(id uint32) error {
 		return err
 	}
 
-	copy(fimg.h.Arch[:], arch[:])
-	fimg.primPartID = descr.ID
+	copy(f.h.Arch[:], arch[:])
+	f.primPartID = descr.ID
 
 	extra := Partition{
 		Fstype:   fs,
@@ -581,17 +579,17 @@ func (fimg *FileImage) SetPrimPart(id uint32) error {
 	}
 
 	// write down the descriptor array
-	if err := writeDescriptors(fimg); err != nil {
+	if err := writeDescriptors(f); err != nil {
 		return err
 	}
 
-	fimg.h.Mtime = time.Now().Unix()
+	f.h.Mtime = time.Now().Unix()
 	// write down global header to file
-	if err := writeHeader(fimg); err != nil {
+	if err := writeHeader(f); err != nil {
 		return err
 	}
 
-	if err := fimg.fp.Sync(); err != nil {
+	if err := f.fp.Sync(); err != nil {
 		return fmt.Errorf("while sync'ing new data object to SIF file: %s", err)
 	}
 
