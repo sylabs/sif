@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -22,14 +23,9 @@ import (
 )
 
 func TestGetHeaderMetadata(t *testing.T) {
-	// Byte stream that represents integrity-protected fields of an arbitrary image.
-	b := []byte{
-		0x23, 0x21, 0x2f, 0x75, 0x73, 0x72, 0x2f, 0x62, 0x69, 0x6e, 0x2f, 0x65,
-		0x6e, 0x76, 0x20, 0x72, 0x75, 0x6e, 0x2d, 0x73, 0x69, 0x6e, 0x67, 0x75,
-		0x6c, 0x61, 0x72, 0x69, 0x74, 0x79, 0x0a, 0x00, 0x53, 0x49, 0x46, 0x5f,
-		0x4d, 0x41, 0x47, 0x49, 0x43, 0x00, 0x30, 0x31, 0x00, 0xb2, 0x65, 0x9d,
-		0x4e, 0xbd, 0x50, 0x4e, 0xa5, 0xbd, 0x17, 0xee, 0xc5, 0xe5, 0x4f, 0x91,
-		0x8e,
+	b, err := os.ReadFile(filepath.Join("testdata", "sources", "header.bin"))
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
@@ -69,34 +65,42 @@ func TestGetHeaderMetadata(t *testing.T) {
 }
 
 func TestGetObjectMetadata(t *testing.T) {
-	od := sif.Descriptor{
-		Datatype: sif.DataDeffile,
-		Used:     true,
-		ID:       1,
+	// Byte stream that represents integrity-protected fields of an arbitrary descriptor with
+	// relative ID of zero.
+	rid0, err := os.ReadFile(filepath.Join("testdata", "sources", "descr-rid0.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Byte stream that represents integrity-protected fields of an arbitrary descriptor with
+	// relative ID of one.
+	rid1, err := os.ReadFile(filepath.Join("testdata", "sources", "descr-rid1.bin"))
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tests := []struct {
 		name       string
 		relativeID uint32
-		od         sif.Descriptor
-		r          io.Reader
+		descr      io.Reader
+		data       io.Reader
 		hash       crypto.Hash
 		wantErr    error
 	}{
-		{name: "HashUnavailable", hash: crypto.MD4, wantErr: errHashUnavailable},
-		{name: "HashUnsupported", hash: crypto.MD5, wantErr: errHashUnsupported},
-		{name: "RelativeID", relativeID: 1, od: od, r: strings.NewReader("blah"), hash: crypto.SHA1},
-		{name: "SHA1", od: od, r: strings.NewReader("blah"), hash: crypto.SHA1},
-		{name: "SHA224", od: od, r: strings.NewReader("blah"), hash: crypto.SHA224},
-		{name: "SHA256", od: od, r: strings.NewReader("blah"), hash: crypto.SHA256},
-		{name: "SHA384", od: od, r: strings.NewReader("blah"), hash: crypto.SHA384},
-		{name: "SHA512", od: od, r: strings.NewReader("blah"), hash: crypto.SHA512},
+		{name: "HashUnavailable", descr: bytes.NewReader(rid0), hash: crypto.MD4, wantErr: errHashUnavailable},
+		{name: "HashUnsupported", descr: bytes.NewReader(rid0), hash: crypto.MD5, wantErr: errHashUnsupported},
+		{name: "RelativeID", relativeID: 1, descr: bytes.NewReader(rid1), data: strings.NewReader("blah"), hash: crypto.SHA1},
+		{name: "SHA1", descr: bytes.NewReader(rid0), data: strings.NewReader("blah"), hash: crypto.SHA1},
+		{name: "SHA224", descr: bytes.NewReader(rid0), data: strings.NewReader("blah"), hash: crypto.SHA224},
+		{name: "SHA256", descr: bytes.NewReader(rid0), data: strings.NewReader("blah"), hash: crypto.SHA256},
+		{name: "SHA384", descr: bytes.NewReader(rid0), data: strings.NewReader("blah"), hash: crypto.SHA384},
+		{name: "SHA512", descr: bytes.NewReader(rid0), data: strings.NewReader("blah"), hash: crypto.SHA512},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			md, err := getObjectMetadata(tt.relativeID, tt.od, tt.r, tt.hash)
+			md, err := getObjectMetadata(tt.relativeID, tt.descr, tt.data, tt.hash)
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
@@ -120,12 +124,12 @@ func TestGetImageMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	od1, _, err := f.GetFromDescrID(1)
+	od1, err := f.GetDescriptor(sif.WithID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	od2, _, err := f.GetFromDescrID(2)
+	od2, err := f.GetDescriptor(sif.WithID(2))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,20 +137,20 @@ func TestGetImageMetadata(t *testing.T) {
 	tests := []struct {
 		name    string
 		minID   uint32
-		ods     []*sif.Descriptor
+		ods     []sif.Descriptor
 		hash    crypto.Hash
 		wantErr error
 	}{
 		{name: "HashUnavailable", hash: crypto.MD4, wantErr: errHashUnavailable},
 		{name: "HashUnsupported", hash: crypto.MD5, wantErr: errHashUnsupported},
-		{name: "MinimumIDInvalid", minID: 2, ods: []*sif.Descriptor{od1}, hash: crypto.SHA1, wantErr: errMinimumIDInvalid},
-		{name: "Object1", minID: 1, ods: []*sif.Descriptor{od1}, hash: crypto.SHA1},
-		{name: "Object2", minID: 1, ods: []*sif.Descriptor{od2}, hash: crypto.SHA1},
-		{name: "SHA1", minID: 1, ods: []*sif.Descriptor{od1, od2}, hash: crypto.SHA1},
-		{name: "SHA224", minID: 1, ods: []*sif.Descriptor{od1, od2}, hash: crypto.SHA224},
-		{name: "SHA256", minID: 1, ods: []*sif.Descriptor{od1, od2}, hash: crypto.SHA256},
-		{name: "SHA384", minID: 1, ods: []*sif.Descriptor{od1, od2}, hash: crypto.SHA384},
-		{name: "SHA512", minID: 1, ods: []*sif.Descriptor{od1, od2}, hash: crypto.SHA512},
+		{name: "MinimumIDInvalid", minID: 2, ods: []sif.Descriptor{od1}, hash: crypto.SHA1, wantErr: errMinimumIDInvalid},
+		{name: "Object1", minID: 1, ods: []sif.Descriptor{od1}, hash: crypto.SHA1},
+		{name: "Object2", minID: 1, ods: []sif.Descriptor{od2}, hash: crypto.SHA1},
+		{name: "SHA1", minID: 1, ods: []sif.Descriptor{od1, od2}, hash: crypto.SHA1},
+		{name: "SHA224", minID: 1, ods: []sif.Descriptor{od1, od2}, hash: crypto.SHA224},
+		{name: "SHA256", minID: 1, ods: []sif.Descriptor{od1, od2}, hash: crypto.SHA256},
+		{name: "SHA384", minID: 1, ods: []sif.Descriptor{od1, od2}, hash: crypto.SHA384},
+		{name: "SHA512", minID: 1, ods: []sif.Descriptor{od1, od2}, hash: crypto.SHA512},
 	}
 
 	for _, tt := range tests {
