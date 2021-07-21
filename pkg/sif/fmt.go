@@ -43,16 +43,13 @@ func (f *FileImage) FmtDescrList() string {
 
 			switch v.Datatype {
 			case DataPartition:
-				f, _ := v.GetFsType()
-				p, _ := v.GetPartType()
-				a, _ := v.GetArch()
-				s += fmt.Sprintf("|%s (%s/%s/%s)\n", v.Datatype, f, p, GetGoArch(trimZeroBytes(a[:])))
+				f, p, a, _ := v.GetPartitionMetadata()
+				s += fmt.Sprintf("|%s (%s/%s/%s)\n", v.Datatype, f, p, a)
 			case DataSignature:
-				h, _ := v.GetHashType()
+				h, _, _ := v.GetSignatureMetadata()
 				s += fmt.Sprintf("|%s (%s)\n", v.Datatype, h)
 			case DataCryptoMessage:
-				f, _ := v.GetFormatType()
-				m, _ := v.GetMessageType()
+				f, m, _ := v.GetCryptoMessageMetadata()
 				s += fmt.Sprintf("|%s (%s/%s)\n", v.Datatype, f, m)
 			default:
 				s += fmt.Sprintf("|%s\n", v.Datatype)
@@ -98,20 +95,16 @@ func (f *FileImage) FmtDescrInfo(id uint32) string {
 			s += fmt.Sprintln("  Name:     ", trimZeroBytes(v.Name[:]))
 			switch v.Datatype {
 			case DataPartition:
-				f, _ := v.GetFsType()
-				p, _ := v.GetPartType()
-				a, _ := v.GetArch()
+				f, p, a, _ := v.GetPartitionMetadata()
 				s += fmt.Sprintln("  Fstype:   ", f)
 				s += fmt.Sprintln("  Parttype: ", p)
-				s += fmt.Sprintln("  Arch:     ", GetGoArch(trimZeroBytes(a[:])))
+				s += fmt.Sprintln("  Arch:     ", a)
 			case DataSignature:
-				h, _ := v.GetHashType()
-				e, _ := v.GetEntityString()
+				h, fp, _ := v.GetSignatureMetadata()
 				s += fmt.Sprintln("  Hashtype: ", h)
-				s += fmt.Sprintln("  Entity:   ", e)
+				s += fmt.Sprintln("  Entity:   ", fmt.Sprintf("%X", fp))
 			case DataCryptoMessage:
-				f, _ := v.GetFormatType()
-				m, _ := v.GetMessageType()
+				f, m, _ := v.GetCryptoMessageMetadata()
 				s += fmt.Sprintln("  Fmttype:  ", f)
 				s += fmt.Sprintln("  Msgtype:  ", m)
 			}
