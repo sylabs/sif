@@ -27,7 +27,7 @@ func TestNewDescriptorInput(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		t       Datatype
+		t       DataType
 		opts    []DescriptorInputOpt
 		wantErr error
 	}{
@@ -164,7 +164,7 @@ func TestNewDescriptorInput(t *testing.T) {
 			}
 
 			if err == nil {
-				d := Descriptor{}
+				d := rawDescriptor{}
 				if err := di.fillDescriptor(&d); err != nil {
 					t.Fatal(err)
 				}
