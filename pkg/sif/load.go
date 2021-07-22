@@ -32,9 +32,9 @@ func readHeader(r io.ReaderAt, fimg *FileImage) error {
 // Read the descriptors from r and populate fimg.DescrArr.
 func readDescriptors(r io.ReaderAt, fimg *FileImage) error {
 	// Initialize descriptor array (slice) and read them all from file
-	fimg.descrArr = make([]rawDescriptor, fimg.h.Dtotal)
-	if err := readBinaryAt(r, fimg.h.Descroff, &fimg.descrArr); err != nil {
-		fimg.descrArr = nil
+	fimg.rds = make([]rawDescriptor, fimg.h.Dtotal)
+	if err := readBinaryAt(r, fimg.h.Descroff, &fimg.rds); err != nil {
+		fimg.rds = nil
 		return fmt.Errorf("reading descriptor array from container file: %s", err)
 	}
 
@@ -88,13 +88,7 @@ func LoadContainerFp(fp ReadWriter, rdonly bool) (fimg FileImage, err error) {
 	if fp == nil {
 		return fimg, fmt.Errorf("provided fp for file is invalid")
 	}
-	fimg.fp = fp
-
-	info, err := fimg.fp.Stat()
-	if err != nil {
-		return fimg, err
-	}
-	fimg.size = info.Size()
+	fimg.rw = fp
 
 	// read global header from SIF file
 	if err = readHeader(fp, &fimg); err != nil {
@@ -137,15 +131,14 @@ func LoadContainerReader(b *bytes.Reader) (fimg FileImage, err error) {
 	return fimg, err
 }
 
-// UnloadContainer closes the SIF container file and free associated resources if needed.
-func (f *FileImage) UnloadContainer() (err error) {
-	// if SIF data comes from file, not a slice buffer (see LoadContainer() variants)
-	if f.fp != nil {
-		if err = f.fp.Close(); err != nil {
-			return fmt.Errorf("closing SIF file failed, corrupted: don't use: %s", err)
+// UnloadContainer unloads f, releasing associated resources.
+func (f *FileImage) UnloadContainer() error {
+	if c, ok := f.rw.(io.Closer); ok {
+		if err := c.Close(); err != nil {
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 func trimZeroBytes(str []byte) string {

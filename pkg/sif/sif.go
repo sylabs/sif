@@ -86,7 +86,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -329,32 +328,19 @@ func (h header) GetIntegrityReader() io.Reader {
 	)
 }
 
-//
-// This section describes SIF creation/loading data structures used when
-// building or opening a SIF file. Transient data not found in the final
-// SIF file. Those data structures are internal.
-//
-
-// ReadWriter describes the operations needed to support reading and
-// writing SIF files.
+// ReadWriter describes the interface required to read and write SIF images.
 type ReadWriter interface {
-	io.ReadWriteSeeker
 	io.ReaderAt
-	io.Closer
-	Name() string
-	Fd() uintptr
-	Stat() (os.FileInfo, error)
-	Sync() error
-	Truncate(size int64) error
+	io.WriteSeeker
+	Truncate(int64) error
 }
 
 // FileImage describes the representation of a SIF file in memory.
 type FileImage struct {
-	h          header          // the loaded SIF global header
-	fp         ReadWriter      // file pointer of opened SIF file
-	size       int64           // file size of the opened SIF file
-	descrArr   []rawDescriptor // slice of loaded descriptors from SIF file
-	primPartID uint32          // ID of primary system partition if present
+	h          header
+	rw         ReadWriter
+	rds        []rawDescriptor
+	primPartID uint32
 }
 
 // LaunchScript returns the image launch script.
