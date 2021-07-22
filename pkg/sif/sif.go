@@ -7,13 +7,6 @@
 
 // Package sif implements data structures and routines to create
 // and access SIF files.
-// 	- sif.go contains the data definition the file format.
-//	- create.go implements the core functionality for the creation of
-//	  of new SIF files.
-//	- load.go implements the core functionality for the loading of
-//	  existing SIF files.
-//	- lookup.go mostly implements search/lookup and printing routines
-//	  and access to specific descriptor/data found in SIF container files.
 //
 // Layout of a SIF file (example):
 //
@@ -115,16 +108,15 @@ const (
 const CurrentVersion = version01
 
 const (
-	DescrNumEntries   = 48                 // the default total number of available descriptors
-	DescrGroupMask    = 0xf0000000         // groups start at that offset
-	DescrUnusedGroup  = DescrGroupMask     // descriptor without a group
-	DescrDefaultGroup = DescrGroupMask | 1 // first groupid number created
-	DescrUnusedLink   = 0                  // descriptor without link to other
-	DescrEntityLen    = 256                // len("Joe Bloe <jbloe@gmail.com>...")
-	DescrNameLen      = 128                // descriptor name (string identifier)
-	DescrMaxPrivLen   = 384                // size reserved for descriptor specific data
-	DescrStartOffset  = 4096               // where descriptors start after global header
-	DataStartOffset   = 32768              // where data object start after descriptors
+	descrNumEntries  = 48             // the default total number of available descriptors
+	descrGroupMask   = 0xf0000000     // groups start at that offset
+	descrUnusedGroup = descrGroupMask // descriptor without a group
+	descrUnusedLink  = 0              // descriptor without link to other
+	descrEntityLen   = 256            // len("Joe Bloe <jbloe@gmail.com>...")
+	descrNameLen     = 128            // descriptor name (string identifier)
+	descrMaxPrivLen  = 384            // size reserved for descriptor specific data
+	descrStartOffset = 4096           // where descriptors start after global header
+	dataStartOffset  = 32768          // where data object start after descriptors
 )
 
 // DataType represents the different SIF data object types stored in the image.
