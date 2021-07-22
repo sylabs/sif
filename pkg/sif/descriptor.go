@@ -9,6 +9,7 @@ package sif
 
 import (
 	"bytes"
+	"crypto"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -50,7 +51,7 @@ type partition struct {
 
 // signature represents the SIF signature data object descriptor.
 type signature struct {
-	Hashtype HashType
+	Hashtype hashType
 	Entity   [DescrEntityLen]byte
 }
 
@@ -156,8 +157,27 @@ func (d rawDescriptor) isPartitionOfType(pt PartType) bool {
 	return t == pt
 }
 
+var errHashUnsupported = errors.New("hash algorithm unsupported")
+
+// getHashType converts ht into a crypto.Hash.
+func getHashType(ht hashType) (crypto.Hash, error) {
+	switch ht {
+	case hashSHA256:
+		return crypto.SHA256, nil
+	case hashSHA384:
+		return crypto.SHA384, nil
+	case hashSHA512:
+		return crypto.SHA512, nil
+	case hashBLAKE2S:
+		return crypto.BLAKE2s_256, nil
+	case hashBLAKE2B:
+		return crypto.BLAKE2b_256, nil
+	}
+	return 0, errHashUnsupported
+}
+
 // GetSignatureMetadata gets metadata for a signature data object.
-func (d rawDescriptor) GetSignatureMetadata() (ht HashType, fp [20]byte, err error) {
+func (d rawDescriptor) GetSignatureMetadata() (ht crypto.Hash, fp [20]byte, err error) {
 	if got, want := d.Datatype, DataSignature; got != want {
 		return ht, fp, &unexpectedDataTypeError{got, want}
 	}
@@ -169,9 +189,13 @@ func (d rawDescriptor) GetSignatureMetadata() (ht HashType, fp [20]byte, err err
 		return ht, fp, fmt.Errorf("%w", err)
 	}
 
+	if ht, err = getHashType(s.Hashtype); err != nil {
+		return ht, fp, fmt.Errorf("%w", err)
+	}
+
 	copy(fp[:], s.Entity[:])
 
-	return s.Hashtype, fp, nil
+	return ht, fp, nil
 }
 
 // GetCryptoMessageMetadata gets metadata for a crypto message data object.
