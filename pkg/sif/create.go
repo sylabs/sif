@@ -160,7 +160,7 @@ func OptCreateWithDescriptors(dis ...DescriptorInput) CreateOpt {
 	}
 }
 
-// OptCreateWithTime specifies t as the creation time.
+// OptCreateWithTime specifies t as the image creation time.
 func OptCreateWithTime(t time.Time) CreateOpt {
 	return func(co *createOpts) error {
 		co.t = t
@@ -300,8 +300,37 @@ func resetDescriptor(fimg *FileImage, index int) error {
 	return nil
 }
 
+// addOpts accumulates object add options.
+type addOpts struct {
+	t time.Time
+}
+
+// AddOpt are used to specify object add options.
+type AddOpt func(*addOpts) error
+
+// OptAddWithTime specifies t as the image modification time.
+func OptAddWithTime(t time.Time) AddOpt {
+	return func(ao *addOpts) error {
+		ao.t = t
+		return nil
+	}
+}
+
 // AddObject add a new data object and its descriptor into the specified SIF file.
-func (f *FileImage) AddObject(input DescriptorInput) error {
+//
+// By default, the image modification time is set to the data object creation time. To override
+// this, use OptAddWithTime.
+func (f *FileImage) AddObject(input DescriptorInput, opts ...AddOpt) error {
+	ao := addOpts{
+		t: input.opts.t,
+	}
+
+	for _, opt := range opts {
+		if err := opt(&ao); err != nil {
+			return err
+		}
+	}
+
 	// set file pointer to the end of data section
 	if _, err := f.rw.Seek(f.h.Dataoff+f.h.Datalen, io.SeekStart); err != nil {
 		return fmt.Errorf("setting file offset pointer to DataStartOffset: %s", err)
@@ -317,7 +346,7 @@ func (f *FileImage) AddObject(input DescriptorInput) error {
 		return err
 	}
 
-	f.h.Mtime = time.Now().Unix()
+	f.h.Mtime = ao.t.Unix()
 
 	return f.writeHeader()
 }
@@ -365,6 +394,7 @@ func compactAtDescr(fimg *FileImage, descr *rawDescriptor) error {
 type deleteOpts struct {
 	zero    bool
 	compact bool
+	t       time.Time
 }
 
 // DeleteOpt are used to specify object deletion options.
@@ -386,12 +416,25 @@ func OptDeleteCompact(b bool) DeleteOpt {
 	}
 }
 
+// OptDeleteWithTime specifies t as the image modification time.
+func OptDeleteWithTime(t time.Time) DeleteOpt {
+	return func(do *deleteOpts) error {
+		do.t = t
+		return nil
+	}
+}
+
 // DeleteObject deletes the data object with id, according to opts.
 //
 // To zero the data region of the deleted object, use OptDeleteZero. To compact the file following
 // object deletion, use OptDeleteCompact.
+//
+// By default, the image modification time is set to time.Now(). To override this, use
+// OptDeleteWithTime.
 func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
-	do := deleteOpts{}
+	do := deleteOpts{
+		t: time.Now(),
+	}
 
 	for _, opt := range opts {
 		if err := opt(&do); err != nil {
@@ -429,7 +472,7 @@ func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
 	}
 
 	f.h.Dfree++
-	f.h.Mtime = time.Now().Unix()
+	f.h.Mtime = do.t.Unix()
 
 	if err = resetDescriptor(f, index); err != nil {
 		return err
@@ -438,8 +481,37 @@ func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
 	return f.writeHeader()
 }
 
+// setOpts accumulates object set options.
+type setOpts struct {
+	t time.Time
+}
+
+// SetOpt are used to specify object set options.
+type SetOpt func(*setOpts) error
+
+// OptSetWithTime specifies t as the image/object modification time.
+func OptSetWithTime(t time.Time) SetOpt {
+	return func(so *setOpts) error {
+		so.t = t
+		return nil
+	}
+}
+
 // SetPrimPart sets the specified system partition to be the primary one.
-func (f *FileImage) SetPrimPart(id uint32) error {
+//
+// By default, the image/object modification time is set to time.Now(). To override this, use
+// OptSetWithTime.
+func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
+	so := setOpts{
+		t: time.Now(),
+	}
+
+	for _, opt := range opts {
+		if err := opt(&so); err != nil {
+			return err
+		}
+	}
+
 	descr, err := f.getDescriptor(WithID(id))
 	if err != nil {
 		return err
@@ -502,7 +574,7 @@ func (f *FileImage) SetPrimPart(id uint32) error {
 		return err
 	}
 
-	f.h.Mtime = time.Now().Unix()
+	f.h.Mtime = so.t.Unix()
 
 	return f.writeHeader()
 }

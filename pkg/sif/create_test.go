@@ -99,7 +99,10 @@ func TestCreateContainer(t *testing.T) {
 	}
 
 	// test container creation with two partition input descriptors
-	fimg, err = CreateContainer(f.Name(), OptCreateWithDescriptors(definput, parinput))
+	fimg, err = CreateContainer(f.Name(),
+		OptCreateWithDescriptors(definput, parinput),
+		OptCreateWithTime(testTime),
+	)
 	if err != nil {
 		t.Fatalf("failed to create container: %v", err)
 	}
@@ -160,7 +163,7 @@ func TestAddDelObject(t *testing.T) {
 	}
 
 	// add new data object 'DataPartition' to SIF file
-	if err = fimg.AddObject(parinput); err != nil {
+	if err = fimg.AddObject(parinput, OptAddWithTime(testTime)); err != nil {
 		t.Errorf("fimg.AddObject(): %s", err)
 	}
 
@@ -185,7 +188,7 @@ func TestAddDelObject(t *testing.T) {
 	}
 
 	// test data object deletation
-	if err := fimg.DeleteObject(2, OptDeleteCompact(true)); err != nil {
+	if err := fimg.DeleteObject(2, OptDeleteCompact(true), OptDeleteWithTime(testTime)); err != nil {
 		t.Errorf("fimg.DeleteObject(2, DelZero): %s", err)
 	}
 
@@ -237,7 +240,7 @@ func TestSetPrimPart(t *testing.T) {
 	// the first pass tests that the primary partition can be set;
 	// the second pass tests that the primary can be changed.
 	for i := range inputs {
-		if err := fimg.SetPrimPart(fimg.rds[i].ID); err != nil {
+		if err := fimg.SetPrimPart(fimg.rds[i].ID, OptSetWithTime(testTime)); err != nil {
 			t.Error("fimg.SetPrimPart(...):", err)
 		}
 
