@@ -215,12 +215,13 @@ func TestSetPrimPart(t *testing.T) {
 	inputs := []DescriptorInput{di1, di2}
 
 	fimg := &FileImage{
+		rw: &Buffer{},
 		h: header{
 			Dfree:  int64(len(inputs)),
 			Dtotal: int64(len(inputs)),
 		},
-		rw:  &Buffer{},
-		rds: make([]rawDescriptor, len(inputs)),
+		rds:    make([]rawDescriptor, len(inputs)),
+		minIDs: make(map[uint32]uint32),
 	}
 
 	for i := range inputs {

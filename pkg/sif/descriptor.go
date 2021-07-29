@@ -122,8 +122,11 @@ func (d rawDescriptor) isPartitionOfType(pt PartType) bool {
 
 // Descriptor represents the SIF descriptor type.
 type Descriptor struct {
-	raw rawDescriptor
-	r   io.ReaderAt
+	r io.ReaderAt // Backing storage.
+
+	raw rawDescriptor // Raw descriptor from image.
+
+	relativeID uint32 // ID relative to minimum ID of object group.
 }
 
 // DataType returns the type of data object.
@@ -235,11 +238,11 @@ func (d Descriptor) GetReader() io.Reader {
 }
 
 // GetIntegrityReader returns an io.Reader that reads the integrity-protected fields from d.
-func (d Descriptor) GetIntegrityReader(relativeID uint32) io.Reader {
+func (d Descriptor) GetIntegrityReader() io.Reader {
 	fields := []interface{}{
 		d.raw.Datatype,
 		d.raw.Used,
-		relativeID,
+		d.relativeID,
 		d.raw.Link,
 		d.raw.Filelen,
 		d.raw.Ctime,
