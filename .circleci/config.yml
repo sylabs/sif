@@ -82,7 +82,7 @@ jobs:
 workflows:
   version: 2
 
-  build_and_test:
+  build-and-test:
     jobs:
       - lint-markdown
       - lint-source
