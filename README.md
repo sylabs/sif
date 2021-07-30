@@ -4,6 +4,7 @@
 [![Build Status](https://circleci.com/gh/sylabs/sif.svg?style=shield)](https://circleci.com/gh/sylabs/workflows/sif)
 [![Code Coverage](https://codecov.io/gh/sylabs/sif/branch/master/graph/badge.svg)](https://app.codecov.io/gh/sylabs/sif)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sylabs/sif)](https://goreportcard.com/report/github.com/sylabs/sif)
+[![Built with Mage](https://magefile.org/badge.svg)](https://magefile.org)
 
 This module contains an open source implementation of the Singularity Image Format (SIF) that makes it easy to create complete and encapsulated container environments stored in a single file.
 
@@ -24,7 +25,7 @@ To get the siftool CLI program installed to `$(go env GOPATH)/bin` to manipulate
 ```sh
 git clone https://github.com/sylabs/sif
 cd sif
-./build.sh
+go run mage.go install
 ```
 
 ## Go Version Compatibility
