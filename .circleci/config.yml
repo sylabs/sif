@@ -63,6 +63,14 @@ jobs:
       - codecov/upload:
           file: cover.out
 
+  release-test:
+    executor: golang
+    steps:
+      - checkout
+      - run:
+          name: Test Release
+          command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish
+
 workflows:
   version: 2
 
@@ -73,3 +81,4 @@ workflows:
       - check-go-mod
       - build-source
       - unit-test
+      - release-test
