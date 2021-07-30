@@ -71,6 +71,14 @@ jobs:
           name: Test Release
           command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish
 
+  publish-release:
+    executor: golang
+    steps:
+      - checkout
+      - run:
+          name: Publish Release
+          command: curl -sL https://git.io/goreleaser | bash
+
 workflows:
   version: 2
 
@@ -82,3 +90,13 @@ workflows:
       - build-source
       - unit-test
       - release-test
+
+  tagged-release:
+    jobs:
+      - publish-release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+          context: github-release
