@@ -112,7 +112,6 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 		subsetOK        bool
 		kr              openpgp.KeyRing
 		wantCBSignature uint32
-		wantCBSigned    []uint32
 		wantCBVerified  []uint32
 		wantCBEntity    *openpgp.Entity
 		wantCBErr       error
@@ -153,7 +152,6 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			wantCBSignature: 3,
 			wantCBErr:       &SignatureNotValidError{ID: 3, Err: pgperrors.ErrUnknownIssuer},
 			wantErr:         nil,
-			wantCBSigned:    []uint32{},
 		},
 		{
 			name:      "OneGroupSigned",
@@ -170,7 +168,6 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			objectIDs:       []uint32{1, 2},
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1, 2},
 			wantCBVerified:  []uint32{1, 2},
 			wantCBEntity:    e,
 		},
@@ -191,7 +188,6 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			subsetOK:        true,
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1, 2},
 			wantCBVerified:  []uint32{1},
 			wantCBEntity:    e,
 		},
@@ -211,18 +207,21 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 
 			// Test callback functionality, if requested.
 			var cb VerifyCallback
+
+			//nolint:dupl
 			if tt.testCallback {
 				cb = func(r VerifyResult) bool {
-					if got, want := r.Signature(), tt.wantCBSignature; got != want {
+					if got, want := r.Signature().ID(), tt.wantCBSignature; got != want {
 						t.Errorf("got signature %v, want %v", got, want)
 					}
 
-					if got, want := r.Signed(), tt.wantCBSigned; !reflect.DeepEqual(got, want) {
-						t.Errorf("got signed %v, want %v", got, want)
+					if got, want := len(r.Verified()), len(tt.wantCBVerified); got != want {
+						t.Fatalf("got %v verified objects, want %v", got, want)
 					}
-
-					if got, want := r.Verified(), tt.wantCBVerified; !reflect.DeepEqual(got, want) {
-						t.Errorf("got verified %v, want %v", got, want)
+					for i, od := range r.Verified() {
+						if got, want := od.ID(), tt.wantCBVerified[i]; got != want {
+							t.Errorf("got verified ID %v, want %v", got, want)
+						}
 					}
 
 					if got, want := r.Entity(), tt.wantCBEntity; got != want {
@@ -344,7 +343,6 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 		groupID         uint32
 		kr              openpgp.KeyRing
 		wantCBSignature uint32
-		wantCBSigned    []uint32
 		wantCBVerified  []uint32
 		wantCBEntity    *openpgp.Entity
 		wantCBErr       error
@@ -372,7 +370,6 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			groupID:         1,
 			kr:              openpgp.EntityList{},
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1, 2},
 			wantCBErr:       pgperrors.ErrUnknownIssuer,
 			wantErr:         nil,
 		},
@@ -389,7 +386,6 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			groupID:         1,
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1, 2},
 			wantCBVerified:  []uint32{1, 2},
 			wantCBEntity:    e,
 		},
@@ -406,7 +402,6 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 			groupID:         1,
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1, 2},
 			wantCBVerified:  []uint32{1, 2},
 			wantCBEntity:    e,
 		},
@@ -417,18 +412,21 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test callback functionality, if requested.
 			var cb VerifyCallback
+
+			//nolint:dupl
 			if tt.testCallback {
 				cb = func(r VerifyResult) bool {
-					if got, want := r.Signature(), tt.wantCBSignature; got != want {
+					if got, want := r.Signature().ID(), tt.wantCBSignature; got != want {
 						t.Errorf("got signature %v, want %v", got, want)
 					}
 
-					if got, want := r.Signed(), tt.wantCBSigned; !reflect.DeepEqual(got, want) {
-						t.Errorf("got signed %v, want %v", got, want)
+					if got, want := len(r.Verified()), len(tt.wantCBVerified); got != want {
+						t.Fatalf("got %v verified objects, want %v", got, want)
 					}
-
-					if got, want := r.Verified(), tt.wantCBVerified; !reflect.DeepEqual(got, want) {
-						t.Errorf("got verified %v, want %v", got, want)
+					for i, od := range r.Verified() {
+						if got, want := od.ID(), tt.wantCBVerified[i]; got != want {
+							t.Errorf("got verified ID %v, want %v", got, want)
+						}
 					}
 
 					if got, want := r.Entity(), tt.wantCBEntity; got != want {
@@ -559,7 +557,6 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 		id              uint32
 		kr              openpgp.KeyRing
 		wantCBSignature uint32
-		wantCBSigned    []uint32
 		wantCBVerified  []uint32
 		wantCBEntity    *openpgp.Entity
 		wantCBErr       error
@@ -587,7 +584,6 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 			id:              1,
 			kr:              openpgp.EntityList{},
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1},
 			wantCBErr:       pgperrors.ErrUnknownIssuer,
 			wantErr:         nil,
 		},
@@ -604,7 +600,6 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 			id:              1,
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1},
 			wantCBVerified:  []uint32{1},
 			wantCBEntity:    e,
 		},
@@ -621,7 +616,6 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 			id:              1,
 			kr:              kr,
 			wantCBSignature: 3,
-			wantCBSigned:    []uint32{1},
 			wantCBVerified:  []uint32{1},
 			wantCBEntity:    e,
 		},
@@ -632,18 +626,21 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test callback functionality, if requested.
 			var cb VerifyCallback
+
+			//nolint:dupl
 			if tt.testCallback {
 				cb = func(r VerifyResult) bool {
-					if got, want := r.Signature(), tt.wantCBSignature; got != want {
+					if got, want := r.Signature().ID(), tt.wantCBSignature; got != want {
 						t.Errorf("got signature %v, want %v", got, want)
 					}
 
-					if got, want := r.Signed(), tt.wantCBSigned; !reflect.DeepEqual(got, want) {
-						t.Errorf("got signed %v, want %v", got, want)
+					if got, want := len(r.Verified()), len(tt.wantCBVerified); got != want {
+						t.Fatalf("got %v verified objects, want %v", got, want)
 					}
-
-					if got, want := r.Verified(), tt.wantCBVerified; !reflect.DeepEqual(got, want) {
-						t.Errorf("got verified %v, want %v", got, want)
+					for i, od := range r.Verified() {
+						if got, want := od.ID(), tt.wantCBVerified[i]; got != want {
+							t.Errorf("got verified ID %v, want %v", got, want)
+						}
 					}
 
 					if got, want := r.Entity(), tt.wantCBEntity; got != want {

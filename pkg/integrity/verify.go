@@ -60,14 +60,11 @@ func (e *SignatureNotValidError) Is(target error) bool {
 
 // VerifyResult is the interface that each verification result implements.
 type VerifyResult interface {
-	// Signature returns the ID of the signature object associated with the result.
-	Signature() uint32
+	// Signature returns the signature object associated with the result.
+	Signature() sif.Descriptor
 
-	// Signed returns the IDs of data objects that were signed.
-	Signed() []uint32
-
-	// Verified returns the IDs of data objects that were verified.
-	Verified() []uint32
+	// Verified returns the data objects that were verified.
+	Verified() []sif.Descriptor
 
 	// Entity returns the signing entity, or nil if the signing entity could not be determined.
 	Entity() *openpgp.Entity
@@ -127,7 +124,7 @@ func (v *groupVerifier) fingerprints() ([][20]byte, error) {
 // If verification of the SIF global header fails, ErrHeaderIntegrity is returned. If verification
 // of a data object descriptor fails, a DescriptorIntegrityError is returned. If verification of a
 // data object fails, a ObjectIntegrityError is returned.
-func (v *groupVerifier) verifySignature(sig sif.Descriptor, kr openpgp.KeyRing) (imageMetadata, []uint32, *openpgp.Entity, error) { // nolint:lll
+func (v *groupVerifier) verifySignature(sig sif.Descriptor, kr openpgp.KeyRing) (imageMetadata, []sif.Descriptor, *openpgp.Entity, error) { // nolint:lll
 	b, err := sig.GetData()
 	if err != nil {
 		return imageMetadata{}, nil, nil, err
@@ -193,7 +190,7 @@ func (v *groupVerifier) verifyWithKeyRing(kr openpgp.KeyRing) error {
 
 		// Call verify callback, if applicable.
 		if v.cb != nil {
-			r := result{signature: sig.ID(), im: im, verified: verified, e: e, err: err}
+			r := result{signature: sig, im: im, verified: verified, e: e, err: err}
 			if ignoreError := v.cb(r); ignoreError {
 				err = nil
 			}
@@ -302,7 +299,7 @@ func (v *legacyGroupVerifier) verifyWithKeyRing(kr openpgp.KeyRing) error {
 
 		// Call verify callback, if applicable.
 		if v.cb != nil {
-			r := legacyResult{signature: sig.ID(), ods: v.ods, e: e, err: err}
+			r := legacyResult{signature: sig, ods: v.ods, e: e, err: err}
 			if ignoreError := v.cb(r); ignoreError {
 				err = nil
 			}
@@ -403,7 +400,7 @@ func (v *legacyObjectVerifier) verifyWithKeyRing(kr openpgp.KeyRing) error {
 
 		// Call verify callback, if applicable.
 		if v.cb != nil {
-			r := legacyResult{signature: sig.ID(), ods: []sif.Descriptor{v.od}, e: e, err: err}
+			r := legacyResult{signature: sig, ods: []sif.Descriptor{v.od}, e: e, err: err}
 			if ignoreError := v.cb(r); ignoreError {
 				err = nil
 			}
