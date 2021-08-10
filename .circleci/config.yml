@@ -10,7 +10,10 @@ executors:
   golangci-lint:
     docker:
       - image: golangci/golangci-lint:v1.41-alpine
-  golang:
+  golang-previous:
+    docker:
+      - image: golang:1.15
+  golang-latest:
     docker:
       - image: golang:1.16
 
@@ -35,7 +38,7 @@ jobs:
           command: golangci-lint run
 
   check-go-mod:
-    executor: golang
+    executor: golang-latest
     steps:
       - checkout
       - run:
@@ -46,7 +49,10 @@ jobs:
           command: git diff --exit-code -- go.mod go.sum
 
   build-source:
-    executor: golang
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
       - checkout
       - run:
@@ -54,7 +60,10 @@ jobs:
           command: go run mage.go build:source
 
   unit-test:
-    executor: golang
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
       - checkout
       - run:
@@ -64,7 +73,7 @@ jobs:
           file: cover.out
 
   release-test:
-    executor: golang
+    executor: golang-latest
     steps:
       - checkout
       - run:
@@ -72,7 +81,7 @@ jobs:
           command: curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish
 
   publish-release:
-    executor: golang
+    executor: golang-latest
     steps:
       - checkout
       - run:
@@ -87,8 +96,14 @@ workflows:
       - lint-markdown
       - lint-source
       - check-go-mod
-      - build-source
-      - unit-test
+      - build-source:
+          matrix:
+            parameters:
+              e: ["golang-previous", "golang-latest"]
+      - unit-test:
+          matrix:
+            parameters:
+              e: ["golang-previous", "golang-latest"]
       - release-test
 
   tagged-release:
