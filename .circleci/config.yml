@@ -7,12 +7,15 @@ executors:
   node:
     docker:
       - image: node:16-slim
-  golang:
-    docker:
-      - image: golang:1.16
   golangci-lint:
     docker:
       - image: golangci/golangci-lint:v1.41-alpine
+  golang-previous:
+    docker:
+      - image: golang:1.15
+  golang-latest:
+    docker:
+      - image: golang:1.16
 
 jobs:
   lint-markdown:
@@ -26,8 +29,16 @@ jobs:
           name: Check for Lint
           command: markdownlint .
 
+  lint-source:
+    executor: golangci-lint
+    steps:
+      - checkout
+      - run:
+          name: Check for Lint
+          command: golangci-lint run
+
   check-go-mod:
-    executor: golang
+    executor: golang-latest
     steps:
       - checkout
       - run:
@@ -38,27 +49,25 @@ jobs:
           command: git diff --exit-code -- go.mod go.sum
 
   build-source:
-    executor: golang
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
       - checkout
       - run:
           name: Build Source
           command: ./build.sh
 
-  lint-source:
-    executor: golangci-lint
-    steps:
-      - checkout
-      - run:
-          name: Check for Lint
-          command: golangci-lint run
-
   unit-test:
-    executor: golang
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
       - checkout
       - run:
-          name: Run Tests
+          name: Run Unit Tests
           command: go test -coverprofile cover.out -race ./...
       - codecov/upload:
           file: cover.out
@@ -66,10 +75,16 @@ jobs:
 workflows:
   version: 2
 
-  build_and_test:
+  build-and-test:
     jobs:
       - lint-markdown
-      - check-go-mod
-      - build-source
       - lint-source
-      - unit-test
+      - check-go-mod
+      - build-source:
+          matrix:
+            parameters:
+              e: ["golang-previous", "golang-latest"]
+      - unit-test:
+          matrix:
+            parameters:
+              e: ["golang-previous", "golang-latest"]
