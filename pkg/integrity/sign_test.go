@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/sebdah/goldie/v2"
 	"github.com/sylabs/sif/v2/pkg/sif"
@@ -21,7 +22,7 @@ import (
 
 func TestOptSignGroupObjects(t *testing.T) {
 	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "two-groups.sif"),
+		filepath.Join(corpus, "two-groups.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -99,7 +100,7 @@ func TestOptSignGroupObjects(t *testing.T) {
 
 func TestNewGroupSigner(t *testing.T) {
 	emptyImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "empty.sif"),
+		filepath.Join(corpus, "empty.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -108,7 +109,7 @@ func TestNewGroupSigner(t *testing.T) {
 	defer emptyImage.UnloadContainer() // nolint:errcheck
 
 	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "two-groups.sif"),
+		filepath.Join(corpus, "two-groups.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -321,7 +322,7 @@ func TestNewGroupSigner(t *testing.T) {
 
 func TestGroupSigner_SignWithEntity(t *testing.T) {
 	twoGroups, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "two-groups.sif"),
+		filepath.Join(corpus, "two-groups.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -364,6 +365,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        1,
 				ods:       []sif.Descriptor{d1},
+				timeFunc:  time.Now,
 				mdHash:    crypto.MD4,
 				sigConfig: &config,
 			},
@@ -376,6 +378,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        1,
 				ods:       []sif.Descriptor{d1},
+				timeFunc:  time.Now,
 				mdHash:    crypto.SHA1,
 				sigConfig: &config,
 			},
@@ -388,6 +391,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        1,
 				ods:       []sif.Descriptor{d1},
+				timeFunc:  time.Now,
 				mdHash:    crypto.SHA1,
 				sigConfig: &config,
 			},
@@ -399,6 +403,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        1,
 				ods:       []sif.Descriptor{d2},
+				timeFunc:  time.Now,
 				mdHash:    crypto.SHA1,
 				sigConfig: &config,
 			},
@@ -410,6 +415,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        1,
 				ods:       []sif.Descriptor{d1, d2},
+				timeFunc:  time.Now,
 				mdHash:    crypto.SHA1,
 				sigConfig: &config,
 			},
@@ -421,6 +427,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 				f:         twoGroups,
 				id:        2,
 				ods:       []sif.Descriptor{d3},
+				timeFunc:  time.Now,
 				mdHash:    crypto.SHA1,
 				sigConfig: &config,
 			},
@@ -486,7 +493,7 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 
 func TestNewSigner(t *testing.T) {
 	emptyImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "empty.sif"),
+		filepath.Join(corpus, "empty.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -495,7 +502,7 @@ func TestNewSigner(t *testing.T) {
 	defer emptyImage.UnloadContainer() // nolint:errcheck
 
 	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "one-group.sif"),
+		filepath.Join(corpus, "one-group.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -504,7 +511,7 @@ func TestNewSigner(t *testing.T) {
 	defer oneGroupImage.UnloadContainer() // nolint:errcheck
 
 	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join("testdata", "images", "two-groups.sif"),
+		filepath.Join(corpus, "two-groups.sif"),
 		sif.OptLoadWithFlag(os.O_RDONLY),
 	)
 	if err != nil {
@@ -610,6 +617,14 @@ func TestNewSigner(t *testing.T) {
 			fi:               twoGroupImage,
 			opts:             []SignerOpt{OptSignObjects(1, 2, 3)},
 			wantGroupObjects: map[uint32][]uint32{1: {1, 2}, 2: {3}},
+		},
+		{
+			name: "OneGroupSignWithTime",
+			fi:   oneGroupImage,
+			opts: []SignerOpt{OptSignWithTime(func() time.Time {
+				return time.Date(2020, 5, 22, 19, 30, 59, 0, time.UTC)
+			})},
+			wantGroupObjects: map[uint32][]uint32{1: {1, 2}},
 		},
 	}
 
@@ -720,7 +735,7 @@ func TestSigner_Sign(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			// Signing modifies the file, so work with a temporary file.
-			tf, err := tempFileFrom(filepath.Join("testdata", "images", tt.inputFile))
+			tf, err := tempFileFrom(filepath.Join(corpus, tt.inputFile))
 			if err != nil {
 				t.Fatal(err)
 			}
