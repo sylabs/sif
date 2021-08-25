@@ -13,9 +13,9 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/sylabs/sif/v2/pkg/integrity"
 	"github.com/sylabs/sif/v2/pkg/sif"
-	"golang.org/x/crypto/openpgp"
 )
 
 func fixedTime() time.Time {

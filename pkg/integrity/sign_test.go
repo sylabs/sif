@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/sebdah/goldie/v2"
 	"github.com/sylabs/sif/v2/pkg/sif"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/packet"
 )
 
 func TestOptSignGroupObjects(t *testing.T) {
