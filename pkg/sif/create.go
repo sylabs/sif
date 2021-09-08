@@ -55,9 +55,9 @@ func writeDataObject(ws io.WriteSeeker, di DescriptorInput, d *rawDescriptor) er
 	}
 
 	d.Used = true
-	d.Fileoff = offset
-	d.Filelen = n
-	d.Storelen = offset - curoff + n
+	d.Offset = offset
+	d.Size = n
+	d.SizeWithPadding = offset - curoff + n
 
 	return nil
 }
@@ -94,12 +94,12 @@ func (f *FileImage) writeDataObject(di DescriptorInput) error {
 	}
 
 	// Update minimum object ID map.
-	if minID, ok := f.minIDs[d.Groupid]; !ok || d.ID < minID {
-		f.minIDs[d.Groupid] = d.ID
+	if minID, ok := f.minIDs[d.GroupID]; !ok || d.ID < minID {
+		f.minIDs[d.GroupID] = d.ID
 	}
 
-	f.h.Dfree--
-	f.h.Datalen += d.Storelen
+	f.h.DescriptorsFree--
+	f.h.DataSize += d.SizeWithPadding
 
 	return nil
 }
@@ -115,7 +115,7 @@ func (f *FileImage) writeDescriptors() error {
 			return err
 		}
 	}
-	f.h.Descrlen = int64(binary.Size(f.rds))
+	f.h.DescriptorsSize = int64(binary.Size(f.rds))
 
 	return nil
 }
@@ -177,16 +177,16 @@ func OptCreateWithCloseOnUnload(b bool) CreateOpt {
 // createContainer creates a new SIF container file in rw, according to opts.
 func createContainer(rw ReadWriter, co createOpts) (*FileImage, error) {
 	h := header{
-		Arch:     hdrArchUnknown,
-		ID:       co.id,
-		Ctime:    co.t.Unix(),
-		Mtime:    co.t.Unix(),
-		Dfree:    descrNumEntries,
-		Dtotal:   descrNumEntries,
-		Descroff: descrStartOffset,
-		Dataoff:  dataStartOffset,
+		Arch:              hdrArchUnknown,
+		ID:                co.id,
+		CreatedAt:         co.t.Unix(),
+		ModifiedAt:        co.t.Unix(),
+		DescriptorsFree:   descrNumEntries,
+		DescriptorsTotal:  descrNumEntries,
+		DescriptorsOffset: descrStartOffset,
+		DataOffset:        dataStartOffset,
 	}
-	copy(h.Launch[:], hdrLaunch)
+	copy(h.LaunchScript[:], hdrLaunch)
 	copy(h.Magic[:], hdrMagic)
 	copy(h.Version[:], CurrentVersion.bytes())
 
@@ -272,12 +272,12 @@ func CreateContainerAtPath(path string, opts ...CreateOpt) (*FileImage, error) {
 
 func zeroData(fimg *FileImage, descr *rawDescriptor) error {
 	// first, move to data object offset
-	if _, err := fimg.rw.Seek(descr.Fileoff, io.SeekStart); err != nil {
+	if _, err := fimg.rw.Seek(descr.Offset, io.SeekStart); err != nil {
 		return fmt.Errorf("seeking to data object offset: %s", err)
 	}
 
 	var zero [4096]byte
-	n := descr.Filelen
+	n := descr.Size
 	upbound := int64(4096)
 	for {
 		if n < 4096 {
@@ -304,7 +304,7 @@ func resetDescriptor(fimg *FileImage, index int) error {
 		fimg.h.Arch = hdrArchUnknown
 	}
 
-	offset := fimg.h.Descroff + int64(index)*int64(binary.Size(fimg.rds[0]))
+	offset := fimg.h.DescriptorsOffset + int64(index)*int64(binary.Size(fimg.rds[0]))
 
 	// first, move to descriptor offset
 	if _, err := fimg.rw.Seek(offset, io.SeekStart); err != nil {
@@ -351,7 +351,7 @@ func (f *FileImage) AddObject(input DescriptorInput, opts ...AddOpt) error {
 	}
 
 	// set file pointer to the end of data section
-	if _, err := f.rw.Seek(f.h.Dataoff+f.h.Datalen, io.SeekStart); err != nil {
+	if _, err := f.rw.Seek(f.h.DataOffset+f.h.DataSize, io.SeekStart); err != nil {
 		return fmt.Errorf("setting file offset pointer to DataStartOffset: %s", err)
 	}
 
@@ -365,7 +365,7 @@ func (f *FileImage) AddObject(input DescriptorInput, opts ...AddOpt) error {
 		return err
 	}
 
-	f.h.Mtime = ao.t.Unix()
+	f.h.ModifiedAt = ao.t.Unix()
 
 	return f.writeHeader()
 }
@@ -374,7 +374,7 @@ func (f *FileImage) AddObject(input DescriptorInput, opts ...AddOpt) error {
 func objectIsLast(f *FileImage, d *rawDescriptor) bool {
 	isLast := true
 
-	end := d.Fileoff + d.Filelen
+	end := d.Offset + d.Size
 	f.WithDescriptors(func(d Descriptor) bool {
 		isLast = d.Offset()+d.Size() <= end
 		return !isLast
@@ -391,21 +391,21 @@ func compactAtDescr(fimg *FileImage, descr *rawDescriptor) error {
 		if !v.Used || v.ID == descr.ID {
 			continue
 		}
-		if v.Fileoff > prev.Fileoff {
+		if v.Offset > prev.Offset {
 			prev = v
 		}
 	}
 	// make sure it's not the only used descriptor first
 	if prev.Used {
-		if err := fimg.rw.Truncate(prev.Fileoff + prev.Filelen); err != nil {
+		if err := fimg.rw.Truncate(prev.Offset + prev.Size); err != nil {
 			return err
 		}
 	} else {
-		if err := fimg.rw.Truncate(descr.Fileoff); err != nil {
+		if err := fimg.rw.Truncate(descr.Offset); err != nil {
 			return err
 		}
 	}
-	fimg.h.Datalen -= descr.Storelen
+	fimg.h.DataSize -= descr.SizeWithPadding
 	return nil
 }
 
@@ -490,8 +490,8 @@ func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
 		}
 	}
 
-	f.h.Dfree++
-	f.h.Mtime = do.t.Unix()
+	f.h.DescriptorsFree++
+	f.h.ModifiedAt = do.t.Unix()
 
 	if err = resetDescriptor(f, index); err != nil {
 		return err
@@ -536,7 +536,7 @@ func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
 		return err
 	}
 
-	if descr.Datatype != DataPartition {
+	if descr.DataType != DataPartition {
 		return fmt.Errorf("not a volume partition")
 	}
 
@@ -593,7 +593,7 @@ func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
 		return err
 	}
 
-	f.h.Mtime = so.t.Unix()
+	f.h.ModifiedAt = so.t.Unix()
 
 	return f.writeHeader()
 }

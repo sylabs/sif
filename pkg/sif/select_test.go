@@ -13,32 +13,31 @@ import (
 func TestFileImage_GetDescriptors(t *testing.T) {
 	ds := []rawDescriptor{
 		{
-			Datatype: DataPartition,
+			DataType: DataPartition,
 			Used:     true,
 			ID:       1,
-			Groupid:  1 | descrGroupMask,
-			Link:     descrUnusedLink,
+			GroupID:  1 | descrGroupMask,
 		},
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     true,
 			ID:       2,
-			Groupid:  1 | descrGroupMask,
-			Link:     1,
+			GroupID:  1 | descrGroupMask,
+			LinkedID: 1,
 		},
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     true,
 			ID:       3,
-			Groupid:  descrUnusedGroup,
-			Link:     1 | descrGroupMask,
+			GroupID:  0 | descrGroupMask,
+			LinkedID: 1 | descrGroupMask,
 		},
 	}
 
 	f := &FileImage{
 		rds: ds,
 		h: header{
-			Dtotal: int64(len(ds)),
+			DescriptorsTotal: int64(len(ds)),
 		},
 	}
 
@@ -143,11 +142,10 @@ func TestFileImage_GetDescriptors(t *testing.T) {
 
 func TestFileImage_GetDescriptor(t *testing.T) {
 	primPartDescr := rawDescriptor{
-		Datatype: DataPartition,
+		DataType: DataPartition,
 		Used:     true,
 		ID:       1,
-		Groupid:  1 | descrGroupMask,
-		Link:     descrUnusedLink,
+		GroupID:  1 | descrGroupMask,
 	}
 
 	p := partition{
@@ -163,25 +161,25 @@ func TestFileImage_GetDescriptor(t *testing.T) {
 	ds := []rawDescriptor{
 		primPartDescr,
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     true,
 			ID:       2,
-			Groupid:  1 | descrGroupMask,
-			Link:     1,
+			GroupID:  1 | descrGroupMask,
+			LinkedID: 1,
 		},
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     true,
 			ID:       3,
-			Groupid:  descrUnusedGroup,
-			Link:     1 | descrGroupMask,
+			GroupID:  0 | descrGroupMask,
+			LinkedID: 1 | descrGroupMask,
 		},
 	}
 
 	f := &FileImage{
 		rds: ds,
 		h: header{
-			Dtotal: int64(len(ds)),
+			DescriptorsTotal: int64(len(ds)),
 		},
 	}
 
@@ -246,25 +244,23 @@ func TestFileImage_GetDescriptor(t *testing.T) {
 func TestFileImage_WithDescriptors(t *testing.T) {
 	ds := []rawDescriptor{
 		{
-			Datatype: DataPartition,
+			DataType: DataPartition,
 			Used:     true,
 			ID:       1,
-			Groupid:  1 | descrGroupMask,
-			Link:     descrUnusedLink,
+			GroupID:  1 | descrGroupMask,
 		},
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     true,
 			ID:       2,
-			Groupid:  descrUnusedGroup,
-			Link:     1 | descrGroupMask,
+			GroupID:  0 | descrGroupMask,
+			LinkedID: 1 | descrGroupMask,
 		},
 		{
-			Datatype: DataSignature,
+			DataType: DataSignature,
 			Used:     false,
 			ID:       3,
-			Groupid:  descrUnusedGroup,
-			Link:     descrUnusedLink,
+			GroupID:  0 | descrGroupMask,
 		},
 	}
 
