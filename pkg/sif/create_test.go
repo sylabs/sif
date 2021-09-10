@@ -7,15 +7,11 @@ package sif
 
 import (
 	"bytes"
-	"encoding/binary"
 	"os"
 	"path/filepath"
 	"testing"
-)
 
-const (
-	headerLen = 128
-	descrLen  = 585
+	"github.com/sebdah/goldie/v2"
 )
 
 func TestNextAligned(t *testing.T) {
@@ -43,73 +39,231 @@ func TestNextAligned(t *testing.T) {
 	}
 }
 
-func TestDataStructs(t *testing.T) {
-	var h header
-	var descr rawDescriptor
-
-	if hdrlen := binary.Size(h); hdrlen != headerLen {
-		t.Errorf("expecting global header size of %d, got %d", headerLen, hdrlen)
+func TestCreateContainer(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []CreateOpt
+	}{
+		{
+			name: "Empty",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+			},
+		},
+		{
+			name: "EmptyCloseOnUnload",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithCloseOnUnload(true),
+			},
+		},
+		{
+			name: "EmptyDescriptorLimitedCapacity",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptorCapacity(1),
+			},
+		},
+		{
+			name: "OneDescriptor",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptors",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptorsNotAligned",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+						OptObjectAlignment(0),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+						OptObjectAlignment(0),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptorsAligned",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+						OptObjectAlignment(4),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+						OptObjectAlignment(4),
+					),
+				),
+			},
+		},
 	}
 
-	if desclen := binary.Size(descr); desclen != descrLen {
-		t.Errorf("expecting descriptor size of %d, got %d", descrLen, desclen)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var b Buffer
+
+			f, err := CreateContainer(&b, tt.opts...)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := f.UnloadContainer(); err != nil {
+				t.Fatal(err)
+			}
+
+			g := goldie.New(t, goldie.WithTestNameForDir(true))
+			g.Assert(t, tt.name, b.Bytes())
+		})
 	}
 }
 
-func TestCreateContainer(t *testing.T) {
-	tf, err := os.CreateTemp("", "sif-test-*")
-	if err != nil {
-		t.Fatal(err)
+func TestCreateContainerAtPath(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []CreateOpt
+	}{
+		{
+			name: "Empty",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+			},
+		},
+		{
+			name: "EmptyDescriptorLimitedCapacity",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptorCapacity(1),
+			},
+		},
+		{
+			name: "OneDescriptor",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptors",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptorsNotAligned",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+						OptObjectAlignment(0),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+						OptObjectAlignment(0),
+					),
+				),
+			},
+		},
+		{
+			name: "TwoDescriptorsAligned",
+			opts: []CreateOpt{
+				OptCreateWithID(testID),
+				OptCreateWithTime(testTime),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
+						OptObjectTime(testTime),
+						OptObjectAlignment(4),
+					),
+					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
+						OptObjectTime(testTime),
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+						OptObjectAlignment(4),
+					),
+				),
+			},
+		},
 	}
-	defer os.Remove(tf.Name())
-	defer tf.Close()
 
-	// test container creation without any input descriptors
-	f, err := CreateContainer(tf, OptCreateWithCloseOnUnload(true))
-	if err != nil {
-		t.Fatalf("failed to create container: %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tf, err := os.CreateTemp("", "sif-test-*")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer os.Remove(tf.Name())
+			tf.Close()
 
-	if err := f.UnloadContainer(); err != nil {
-		t.Errorf("failed to unload container: %v", err)
-	}
+			f, err := CreateContainerAtPath(tf.Name(), tt.opts...)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	defHandle, err := os.Open(filepath.Join("testdata", "busybox.def"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer defHandle.Close()
+			if err := f.UnloadContainer(); err != nil {
+				t.Fatal(err)
+			}
 
-	definput, err := NewDescriptorInput(DataDeffile, defHandle, OptGroupID(1))
-	if err != nil {
-		t.Fatal(err)
-	}
+			b, err := os.ReadFile(tf.Name())
+			if err != nil {
+				t.Fatal(err)
+			}
 
-	partHandle, err := os.Open(filepath.Join("testdata", "busybox.squash"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer partHandle.Close()
-
-	parinput, err := NewDescriptorInput(DataPartition, partHandle,
-		OptObjectAlignment(1048576), // Test an aggressive alignment requirement
-		OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// test container creation with two partition input descriptors
-	f, err = CreateContainerAtPath(tf.Name(),
-		OptCreateWithDescriptors(definput, parinput),
-		OptCreateWithTime(testTime),
-	)
-	if err != nil {
-		t.Fatalf("failed to create container: %v", err)
-	}
-
-	if err := f.UnloadContainer(); err != nil {
-		t.Errorf("failed to unload container: %v", err)
+			g := goldie.New(t, goldie.WithTestNameForDir(true))
+			g.Assert(t, tt.name, b)
+		})
 	}
 }
 
