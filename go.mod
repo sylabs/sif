@@ -1,3 +1,4 @@
+// Deprecated: use github.com/sylabs/sif/v2 instead.
 module github.com/sylabs/sif
 
 go 1.17
