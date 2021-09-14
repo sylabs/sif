@@ -6,7 +6,7 @@
 package siftool
 
 import (
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 )
 
 // withFileImage calls fn with a FileImage loaded from path.

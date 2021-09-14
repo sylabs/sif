@@ -14,7 +14,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 )
 
 var usageMessage = `siftool is a utility program for manipulating SIF files.

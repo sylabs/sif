@@ -15,7 +15,7 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
 )
