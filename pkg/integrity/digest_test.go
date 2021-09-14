@@ -17,7 +17,7 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 )
 
 func TestNewLegacyDigest(t *testing.T) {

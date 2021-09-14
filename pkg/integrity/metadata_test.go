@@ -19,7 +19,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"github.com/sebdah/goldie/v2"
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 )
 
 func TestWriteHeader(t *testing.T) {

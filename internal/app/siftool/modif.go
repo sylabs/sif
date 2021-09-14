@@ -12,7 +12,7 @@ import (
 	"io"
 
 	uuid "github.com/satori/go.uuid"
-	"github.com/sylabs/sif/pkg/sif"
+	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
 )
 
 // New creates a new empty SIF file.
