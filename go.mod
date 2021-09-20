@@ -3,7 +3,7 @@ module github.com/sylabs/sif/v2
 go 1.17
 
 require (
-	github.com/ProtonMail/go-crypto v0.0.0-20210707164159-52430bf6b52c
+	github.com/ProtonMail/go-crypto v0.0.0-20210920160938-87db9fbc61c7
 	github.com/blang/semver/v4 v4.0.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/google/uuid v1.3.0
@@ -27,7 +27,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/crypto v0.0.0-20210920023735-84f357641f63 // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
