@@ -8,7 +8,6 @@
 package sif
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -23,11 +22,11 @@ var (
 
 // isValidSif looks at key fields from the global header to assess SIF validity.
 func isValidSif(f *FileImage) error {
-	if got, want := trimZeroBytes(f.h.Magic[:]), hdrMagic; got != want {
+	if f.h.Magic != hdrMagic {
 		return errInvalidMagic
 	}
 
-	if got, want := trimZeroBytes(f.h.Version[:]), CurrentVersion.String(); got > want {
+	if f.h.Version != CurrentVersion.bytes() {
 		return errIncompatibleVersion
 	}
 
@@ -172,8 +171,4 @@ func (f *FileImage) UnloadContainer() error {
 		}
 	}
 	return nil
-}
-
-func trimZeroBytes(str []byte) string {
-	return string(bytes.TrimRight(str, "\x00"))
 }
