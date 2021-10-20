@@ -8,7 +8,6 @@
 package sif
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -172,8 +171,4 @@ func (f *FileImage) UnloadContainer() error {
 		}
 	}
 	return nil
-}
-
-func trimZeroBytes(str []byte) string {
-	return string(bytes.TrimRight(str, "\x00"))
 }
