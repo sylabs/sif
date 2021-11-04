@@ -48,6 +48,17 @@ jobs:
           name: Check Module Tidiness
           command: git diff --exit-code -- go.mod go.sum
 
+  check-test-corpus:
+    executor: golang-latest
+    steps:
+      - checkout
+      - run:
+          name: Generate Test Corpus
+          command: pushd test/ && go run ./gen_sifs.go && popd
+      - run:
+          name: Check Test Corpus Tidiness
+          command: git diff --exit-code --
+
   build-source:
     parameters:
       e:
@@ -96,6 +107,7 @@ workflows:
       - lint-markdown
       - lint-source
       - check-go-mod
+      - check-test-corpus
       - build-source:
           matrix:
             parameters:
