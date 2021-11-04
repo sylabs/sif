@@ -80,9 +80,7 @@ func TestCreateContainer(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 		},
@@ -92,11 +90,8 @@ func TestCreateContainer(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 					),
 				),
@@ -109,11 +104,9 @@ func TestCreateContainer(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptObjectAlignment(0),
 					),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 						OptObjectAlignment(0),
 					),
@@ -127,11 +120,9 @@ func TestCreateContainer(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptObjectAlignment(4),
 					),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 						OptObjectAlignment(4),
 					),
@@ -185,9 +176,7 @@ func TestCreateContainerAtPath(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 		},
@@ -197,11 +186,8 @@ func TestCreateContainerAtPath(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 					),
 				),
@@ -214,11 +200,9 @@ func TestCreateContainerAtPath(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptObjectAlignment(0),
 					),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 						OptObjectAlignment(0),
 					),
@@ -232,11 +216,9 @@ func TestCreateContainerAtPath(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptObjectAlignment(4),
 					),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 						OptObjectAlignment(4),
 					),
@@ -279,6 +261,7 @@ func TestAddObject(t *testing.T) {
 		name       string
 		createOpts []CreateOpt
 		di         DescriptorInput
+		addOpts    []AddOpt
 		wantErr    error
 	}{
 		{
@@ -288,9 +271,7 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptorCapacity(0),
 			},
-			di: getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed},
-				OptObjectTime(testTime),
-			),
+			di:      getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
 			wantErr: errInsufficientCapacity,
 		},
 		{
@@ -300,13 +281,11 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 					),
 				),
 			},
 			di: getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-				OptObjectTime(testTime),
 				OptPartitionMetadata(FsSquash, PartPrimSys, "amd64"),
 			),
 			wantErr: errPrimaryPartition,
@@ -317,9 +296,10 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 			},
-			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-				OptObjectTime(testTime),
-			),
+			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 		{
 			name: "EmptyNotAligned",
@@ -328,9 +308,11 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithTime(testTime),
 			},
 			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-				OptObjectTime(testTime),
 				OptObjectAlignment(0),
 			),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 		{
 			name: "EmptyAligned",
@@ -339,9 +321,11 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithTime(testTime),
 			},
 			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-				OptObjectTime(testTime),
 				OptObjectAlignment(128),
 			),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 		{
 			name: "NotEmpty",
@@ -349,15 +333,15 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			di: getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-				OptObjectTime(testTime),
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 			),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 		{
 			name: "NotEmptyNotAligned",
@@ -365,16 +349,16 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			di: getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-				OptObjectTime(testTime),
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 				OptObjectAlignment(0),
 			),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 		{
 			name: "NotEmptyAligned",
@@ -382,16 +366,16 @@ func TestAddObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			di: getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-				OptObjectTime(testTime),
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 				OptObjectAlignment(128),
 			),
+			addOpts: []AddOpt{
+				OptAddWithTime(testTime),
+			},
 		},
 	}
 
@@ -404,7 +388,7 @@ func TestAddObject(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if got, want := f.AddObject(tt.di), tt.wantErr; !errors.Is(got, want) {
+			if got, want := f.AddObject(tt.di, tt.addOpts...), tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
 			}
 
@@ -441,9 +425,7 @@ func TestDeleteObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
@@ -458,9 +440,7 @@ func TestDeleteObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
@@ -475,9 +455,7 @@ func TestDeleteObject(t *testing.T) {
 				OptCreateWithID(testID),
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
-					),
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
@@ -494,7 +472,6 @@ func TestDeleteObject(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 					),
 				),
@@ -553,7 +530,6 @@ func TestSetPrimPart(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsRaw, PartSystem, "386"),
 					),
 				),
@@ -570,11 +546,9 @@ func TestSetPrimPart(t *testing.T) {
 				OptCreateWithTime(testTime),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsRaw, PartPrimSys, "386"),
 					),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
-						OptObjectTime(testTime),
 						OptPartitionMetadata(FsRaw, PartSystem, "amd64"),
 					),
 				),
