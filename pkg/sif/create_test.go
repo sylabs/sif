@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/sebdah/goldie/v2"
 )
@@ -47,8 +48,7 @@ func TestCreateContainer(t *testing.T) {
 		{
 			name: "ErrInsufficientCapacity",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptorCapacity(0),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
@@ -59,39 +59,48 @@ func TestCreateContainer(t *testing.T) {
 		{
 			name: "Empty",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 		},
 		{
-			name: "LaunchScript",
+			name: "EmptyLaunchScript",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithLaunchScript("#!/usr/bin/env launch-script\n"),
+			},
+		},
+		{
+			name: "EmptyWithID",
+			opts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithID("de170c43-36ab-44a8-bca9-1ea1a070a274"),
+			},
+		},
+		{
+			name: "EmptyWithTime",
+			opts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithTime(time.Unix(946702800, 0)),
 			},
 		},
 		{
 			name: "EmptyCloseOnUnload",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithCloseOnUnload(true),
 			},
 		},
 		{
 			name: "EmptyDescriptorLimitedCapacity",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptorCapacity(1),
 			},
 		},
 		{
 			name: "OneDescriptor",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
@@ -100,8 +109,7 @@ func TestCreateContainer(t *testing.T) {
 		{
 			name: "TwoDescriptors",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
@@ -113,8 +121,7 @@ func TestCreateContainer(t *testing.T) {
 		{
 			name: "TwoDescriptorsNotAligned",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 						OptObjectAlignment(0),
@@ -129,8 +136,7 @@ func TestCreateContainer(t *testing.T) {
 		{
 			name: "TwoDescriptorsAligned",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 						OptObjectAlignment(4),
@@ -175,8 +181,7 @@ func TestCreateContainerAtPath(t *testing.T) {
 		{
 			name: "ErrInsufficientCapacity",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptorCapacity(0),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
@@ -187,23 +192,20 @@ func TestCreateContainerAtPath(t *testing.T) {
 		{
 			name: "Empty",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 		},
 		{
 			name: "EmptyDescriptorLimitedCapacity",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptorCapacity(1),
 			},
 		},
 		{
 			name: "OneDescriptor",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
@@ -212,8 +214,7 @@ func TestCreateContainerAtPath(t *testing.T) {
 		{
 			name: "TwoDescriptors",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 					getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
@@ -225,8 +226,7 @@ func TestCreateContainerAtPath(t *testing.T) {
 		{
 			name: "TwoDescriptorsNotAligned",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 						OptObjectAlignment(0),
@@ -241,8 +241,7 @@ func TestCreateContainerAtPath(t *testing.T) {
 		{
 			name: "TwoDescriptorsAligned",
 			opts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 						OptObjectAlignment(4),
@@ -293,14 +292,13 @@ func TestAddObject(t *testing.T) {
 		name       string
 		createOpts []CreateOpt
 		di         DescriptorInput
-		addOpts    []AddOpt
+		opts       []AddOpt
 		wantErr    error
 	}{
 		{
 			name: "ErrInsufficientCapacity",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptorCapacity(0),
 			},
 			di:      getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
@@ -309,8 +307,7 @@ func TestAddObject(t *testing.T) {
 		{
 			name: "ErrPrimaryPartition",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
@@ -323,47 +320,54 @@ func TestAddObject(t *testing.T) {
 			wantErr: errPrimaryPartition,
 		},
 		{
-			name: "Empty",
+			name: "WithTime",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
+				OptAddWithTime(time.Unix(946702800, 0)),
+			},
+		},
+		{
+			name: "Empty",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+			},
+			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 		{
 			name: "EmptyNotAligned",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 				OptObjectAlignment(0),
 			),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 		{
 			name: "EmptyAligned",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 			di: getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce},
 				OptObjectAlignment(128),
 			),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 		{
 			name: "NotEmpty",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
@@ -371,15 +375,14 @@ func TestAddObject(t *testing.T) {
 			di: getDescriptorInput(t, DataPartition, []byte{0xfe, 0xed},
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 			),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 		{
 			name: "NotEmptyNotAligned",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
@@ -388,15 +391,14 @@ func TestAddObject(t *testing.T) {
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 				OptObjectAlignment(0),
 			),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 		{
 			name: "NotEmptyAligned",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
@@ -405,8 +407,8 @@ func TestAddObject(t *testing.T) {
 				OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
 				OptObjectAlignment(128),
 			),
-			addOpts: []AddOpt{
-				OptAddWithTime(testTime),
+			opts: []AddOpt{
+				OptAddDeterministic(),
 			},
 		},
 	}
@@ -420,7 +422,7 @@ func TestAddObject(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if got, want := f.AddObject(tt.di, tt.addOpts...), tt.wantErr; !errors.Is(got, want) {
+			if got, want := f.AddObject(tt.di, tt.opts...), tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
 			}
 
@@ -445,8 +447,7 @@ func TestDeleteObject(t *testing.T) {
 		{
 			name: "ErrObjectNotFound",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 			id:      1,
 			wantErr: ErrObjectNotFound,
@@ -454,54 +455,64 @@ func TestDeleteObject(t *testing.T) {
 		{
 			name: "Zero",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
 			opts: []DeleteOpt{
+				OptDeleteDeterministic(),
 				OptDeleteZero(true),
-				OptDeleteWithTime(testTime),
 			},
 		},
 		{
 			name: "Compact",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
 			opts: []DeleteOpt{
+				OptDeleteDeterministic(),
 				OptDeleteCompact(true),
-				OptDeleteWithTime(testTime),
 			},
 		},
 		{
 			name: "ZeroCompact",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
 			id: 1,
 			opts: []DeleteOpt{
+				OptDeleteDeterministic(),
 				OptDeleteZero(true),
 				OptDeleteCompact(true),
-				OptDeleteWithTime(testTime),
+			},
+		},
+		{
+			name: "WithTime",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+				),
+			},
+			id: 1,
+			opts: []DeleteOpt{
+				OptDeleteDeterministic(),
+				OptDeleteWithTime(time.Unix(946702800, 0)),
 			},
 		},
 		{
 			name: "PrimaryPartition",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
 						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
@@ -510,7 +521,7 @@ func TestDeleteObject(t *testing.T) {
 			},
 			id: 1,
 			opts: []DeleteOpt{
-				OptDeleteWithTime(testTime),
+				OptDeleteDeterministic(),
 			},
 		},
 	}
@@ -549,17 +560,15 @@ func TestSetPrimPart(t *testing.T) {
 		{
 			name: "ErrObjectNotFound",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 			},
 			id:      1,
 			wantErr: ErrObjectNotFound,
 		},
 		{
-			name: "One",
+			name: "WithTime",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
 						OptPartitionMetadata(FsRaw, PartSystem, "386"),
@@ -568,14 +577,29 @@ func TestSetPrimPart(t *testing.T) {
 			},
 			id: 1,
 			opts: []SetOpt{
-				OptSetWithTime(testTime),
+				OptSetDeterministic(),
+				OptSetWithTime(time.Unix(946702800, 0)),
+			},
+		},
+		{
+			name: "One",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
+						OptPartitionMetadata(FsRaw, PartSystem, "386"),
+					),
+				),
+			},
+			id: 1,
+			opts: []SetOpt{
+				OptSetDeterministic(),
 			},
 		},
 		{
 			name: "Two",
 			createOpts: []CreateOpt{
-				OptCreateWithID(testID),
-				OptCreateWithTime(testTime),
+				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
 						OptPartitionMetadata(FsRaw, PartPrimSys, "386"),
@@ -587,7 +611,7 @@ func TestSetPrimPart(t *testing.T) {
 			},
 			id: 2,
 			opts: []SetOpt{
-				OptSetWithTime(testTime),
+				OptSetDeterministic(),
 			},
 		},
 	}
