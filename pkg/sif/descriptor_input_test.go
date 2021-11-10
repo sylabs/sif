@@ -178,7 +178,7 @@ func TestNewDescriptorInput(t *testing.T) {
 
 			if err == nil {
 				d := rawDescriptor{}
-				if err := di.fillDescriptor(time.Unix(0, 0), &d); err != nil {
+				if err := di.fillDescriptor(time.Time{}, &d); err != nil {
 					t.Fatal(err)
 				}
 
