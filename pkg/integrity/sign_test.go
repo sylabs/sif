@@ -21,14 +21,7 @@ import (
 )
 
 func TestOptSignGroupObjects(t *testing.T) {
-	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "two-groups.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer twoGroupImage.UnloadContainer() // nolint:errcheck
+	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
 	tests := []struct {
 		name    string
@@ -99,23 +92,8 @@ func TestOptSignGroupObjects(t *testing.T) {
 }
 
 func TestNewGroupSigner(t *testing.T) {
-	emptyImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "empty.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer emptyImage.UnloadContainer() // nolint:errcheck
-
-	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "two-groups.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer twoGroupImage.UnloadContainer() // nolint:errcheck
+	emptyImage := loadContainer(t, filepath.Join(corpus, "empty.sif"))
+	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
 	tests := []struct {
 		name        string
@@ -233,14 +211,7 @@ func TestNewGroupSigner(t *testing.T) {
 }
 
 func TestGroupSigner_SignWithEntity(t *testing.T) {
-	twoGroups, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "two-groups.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer twoGroups.UnloadContainer() // nolint:errcheck
+	twoGroups := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
 	d1, err := twoGroups.GetDescriptor(sif.WithID(1))
 	if err != nil {
@@ -428,32 +399,9 @@ func TestGroupSigner_SignWithEntity(t *testing.T) {
 }
 
 func TestNewSigner(t *testing.T) {
-	emptyImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "empty.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer emptyImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "two-groups.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer twoGroupImage.UnloadContainer() // nolint:errcheck
+	emptyImage := loadContainer(t, filepath.Join(corpus, "empty.sif"))
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
 	e := getTestEntity(t)
 

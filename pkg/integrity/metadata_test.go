@@ -119,13 +119,7 @@ func TestGetObjectMetadata(t *testing.T) {
 }
 
 func TestGetImageMetadata(t *testing.T) {
-	f, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	f := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
 
 	od1, err := f.GetDescriptor(sif.WithID(1))
 	if err != nil {

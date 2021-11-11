@@ -8,7 +8,6 @@ package integrity
 import (
 	"errors"
 	"io"
-	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -19,23 +18,8 @@ import (
 )
 
 func TestGroupVerifier_fingerprints(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupSignedImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupSignedImage.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupSignedImage := loadContainer(t, filepath.Join(corpus, "one-group-signed.sif"))
 
 	e := getTestEntity(t)
 
@@ -81,23 +65,8 @@ func TestGroupVerifier_fingerprints(t *testing.T) {
 }
 
 func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupSignedImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupSignedImage.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupSignedImage := loadContainer(t, filepath.Join(corpus, "one-group-signed.sif"))
 
 	e := getTestEntity(t)
 	kr := openpgp.EntityList{e}
@@ -252,23 +221,8 @@ func TestGroupVerifier_verifyWithKeyRing(t *testing.T) {
 }
 
 func TestLegacyGroupVerifier_fingerprints(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupImageSigned, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed-legacy-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImageSigned.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupImageSigned := loadContainer(t, filepath.Join(corpus, "one-group-signed-legacy-group.sif"))
 
 	e := getTestEntity(t)
 
@@ -314,23 +268,8 @@ func TestLegacyGroupVerifier_fingerprints(t *testing.T) {
 }
 
 func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupSignedImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed-legacy-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupSignedImage.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupSignedImage := loadContainer(t, filepath.Join(corpus, "one-group-signed-legacy-group.sif"))
 
 	e := getTestEntity(t)
 	kr := openpgp.EntityList{e}
@@ -461,23 +400,8 @@ func TestLegacyGroupVerifier_verifyWithKeyRing(t *testing.T) {
 }
 
 func TestLegacyObjectVerifier_fingerprints(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupImageSigned, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed-legacy-all.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImageSigned.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupImageSigned := loadContainer(t, filepath.Join(corpus, "one-group-signed-legacy-all.sif"))
 
 	e := getTestEntity(t)
 
@@ -528,23 +452,8 @@ func TestLegacyObjectVerifier_fingerprints(t *testing.T) {
 }
 
 func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupSignedImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed-legacy-all.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupSignedImage.UnloadContainer() // nolint:errcheck
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	oneGroupSignedImage := loadContainer(t, filepath.Join(corpus, "one-group-signed-legacy-all.sif"))
 
 	e := getTestEntity(t)
 	kr := openpgp.EntityList{e}
@@ -674,32 +583,9 @@ func TestLegacyObjectVerifier_verifyWithKeyRing(t *testing.T) {
 }
 
 func TestNewVerifier(t *testing.T) {
-	emptyImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "empty.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer emptyImage.UnloadContainer() // nolint:errcheck
-
-	oneGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupImage.UnloadContainer() // nolint:errcheck
-
-	twoGroupImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "two-groups.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer twoGroupImage.UnloadContainer() // nolint:errcheck
+	emptyImage := loadContainer(t, filepath.Join(corpus, "empty.sif"))
+	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
+	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
 	kr := openpgp.EntityList{getTestEntity(t)}
 
@@ -1112,14 +998,7 @@ func TestVerifier_AllSignedBy(t *testing.T) {
 }
 
 func TestVerifier_Verify(t *testing.T) {
-	oneGroupSignedImage, err := sif.LoadContainerFromPath(
-		filepath.Join(corpus, "one-group-signed.sif"),
-		sif.OptLoadWithFlag(os.O_RDONLY),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer oneGroupSignedImage.UnloadContainer() // nolint:errcheck
+	oneGroupSignedImage := loadContainer(t, filepath.Join(corpus, "one-group-signed.sif"))
 
 	kr := openpgp.EntityList{getTestEntity(t)}
 
