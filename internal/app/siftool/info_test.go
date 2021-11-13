@@ -8,10 +8,12 @@ package siftool
 import (
 	"bytes"
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
+	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 var corpus = filepath.Join("..", "..", "..", "test", "images")
@@ -82,6 +84,11 @@ func TestApp_Header(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name:    "NotExist",
+			path:    "not-exist.sif",
+			wantErr: os.ErrNotExist,
+		},
+		{
 			name: "Empty",
 			path: filepath.Join(corpus, "empty.sif"),
 		},
@@ -94,8 +101,8 @@ func TestApp_Header(t *testing.T) {
 			path: filepath.Join(corpus, "empty-launch-script.sif"),
 		},
 		{
-			name: "EmptyTime",
-			path: filepath.Join(corpus, "empty-time.sif"),
+			name: "OneObjectTime",
+			path: filepath.Join(corpus, "one-object-time.sif"),
 		},
 		{
 			name: "OneObjectGenericJSON",
@@ -159,8 +166,10 @@ func TestApp_Header(t *testing.T) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
 
-			g := goldie.New(t, goldie.WithTestNameForDir(true))
-			g.Assert(t, tt.name, b.Bytes())
+			if tt.wantErr == nil {
+				g := goldie.New(t, goldie.WithTestNameForDir(true))
+				g.Assert(t, tt.name, b.Bytes())
+			}
 		})
 	}
 }
@@ -172,6 +181,11 @@ func TestApp_List(t *testing.T) {
 		path    string
 		wantErr error
 	}{
+		{
+			name:    "NotExist",
+			path:    "not-exist.sif",
+			wantErr: os.ErrNotExist,
+		},
 		{
 			name: "Empty",
 			path: filepath.Join(corpus, "empty.sif"),
@@ -185,8 +199,8 @@ func TestApp_List(t *testing.T) {
 			path: filepath.Join(corpus, "empty-launch-script.sif"),
 		},
 		{
-			name: "EmptyTime",
-			path: filepath.Join(corpus, "empty-time.sif"),
+			name: "OneObjectTime",
+			path: filepath.Join(corpus, "one-object-time.sif"),
 		},
 		{
 			name: "OneObjectGenericJSON",
@@ -250,8 +264,10 @@ func TestApp_List(t *testing.T) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
 
-			g := goldie.New(t, goldie.WithTestNameForDir(true))
-			g.Assert(t, tt.name, b.Bytes())
+			if tt.wantErr == nil {
+				g := goldie.New(t, goldie.WithTestNameForDir(true))
+				g.Assert(t, tt.name, b.Bytes())
+			}
 		})
 	}
 }
@@ -263,6 +279,16 @@ func TestApp_Info(t *testing.T) {
 		id      uint32
 		wantErr error
 	}{
+		{
+			name:    "NotExist",
+			path:    "not-exist.sif",
+			wantErr: os.ErrNotExist,
+		},
+		{
+			name: "Time",
+			path: filepath.Join(corpus, "one-object-time.sif"),
+			id:   1,
+		},
 		{
 			name: "GenericJSON",
 			path: filepath.Join(corpus, "one-object-generic-json.sif"),
@@ -307,8 +333,10 @@ func TestApp_Info(t *testing.T) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
 
-			g := goldie.New(t, goldie.WithTestNameForDir(true))
-			g.Assert(t, tt.name, b.Bytes())
+			if tt.wantErr == nil {
+				g := goldie.New(t, goldie.WithTestNameForDir(true))
+				g.Assert(t, tt.name, b.Bytes())
+			}
 		})
 	}
 }
@@ -320,6 +348,17 @@ func TestApp_Dump(t *testing.T) {
 		id      uint32
 		wantErr error
 	}{
+		{
+			name:    "NotExist",
+			path:    "not-exist.sif",
+			wantErr: os.ErrNotExist,
+		},
+		{
+			name:    "InvalidObjectID",
+			path:    filepath.Join(corpus, "one-group-signed.sif"),
+			id:      0,
+			wantErr: sif.ErrInvalidObjectID,
+		},
 		{
 			name: "One",
 			path: filepath.Join(corpus, "one-group-signed.sif"),
@@ -349,8 +388,10 @@ func TestApp_Dump(t *testing.T) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
 
-			g := goldie.New(t, goldie.WithTestNameForDir(true))
-			g.Assert(t, tt.name, b.Bytes())
+			if tt.wantErr == nil {
+				g := goldie.New(t, goldie.WithTestNameForDir(true))
+				g.Assert(t, tt.name, b.Bytes())
+			}
 		})
 	}
 }
