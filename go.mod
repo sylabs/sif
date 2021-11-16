@@ -3,7 +3,7 @@ module github.com/sylabs/sif/v2
 go 1.17
 
 require (
-	github.com/ProtonMail/go-crypto v0.0.0-20210920160938-87db9fbc61c7
+	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3
 	github.com/google/uuid v1.3.0
 	github.com/magefile/mage v1.11.0
 	github.com/sebdah/goldie/v2 v2.5.3
