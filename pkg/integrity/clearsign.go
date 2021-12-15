@@ -11,9 +11,9 @@ import (
 	"errors"
 	"io"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
-	"golang.org/x/crypto/openpgp/packet"
+	"golang.org/x/crypto/openpgp"           //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp/packet"    //nolint:staticcheck // In use until v2 API
 )
 
 var errClearsignedMsgNotFound = errors.New("clearsigned message not found")

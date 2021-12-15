@@ -16,9 +16,9 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
-	"golang.org/x/crypto/openpgp"
-	pgperrors "golang.org/x/crypto/openpgp/errors"
-	"golang.org/x/crypto/openpgp/packet"
+	"golang.org/x/crypto/openpgp"                  //nolint:staticcheck // In use until v2 API
+	pgperrors "golang.org/x/crypto/openpgp/errors" //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp/packet"           //nolint:staticcheck // In use until v2 API
 )
 
 type testType struct {

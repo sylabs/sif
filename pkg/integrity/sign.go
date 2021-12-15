@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/packet"
+	"github.com/sylabs/sif/pkg/sif"      //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp"        //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp/packet" //nolint:staticcheck // In use until v2 API
 )
 
 var (
