@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/magefile/mage v1.11.0
 	github.com/sebdah/goldie/v2 v2.5.3
-	github.com/spf13/cobra v1.2.1
+	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/sylabs/release-tools v0.1.0
 )
@@ -30,6 +30,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20210929193557-e81a3d93ecf6 // indirect
-	golang.org/x/sys v0.0.0-20211001092434-39dca1131b70 // indirect
+	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
