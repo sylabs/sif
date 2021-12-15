@@ -12,9 +12,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sylabs/sif/pkg/sif" //nolint:staticcheck // In use until v2 API
-	"golang.org/x/crypto/openpgp"
-	pgperrors "golang.org/x/crypto/openpgp/errors"
+	"github.com/sylabs/sif/pkg/sif"                //nolint:staticcheck // In use until v2 API
+	"golang.org/x/crypto/openpgp"                  //nolint:staticcheck // In use until v2 API
+	pgperrors "golang.org/x/crypto/openpgp/errors" //nolint:staticcheck // In use until v2 API
 )
 
 func TestGroupVerifier_fingerprints(t *testing.T) {

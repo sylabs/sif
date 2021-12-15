@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp" //nolint:staticcheck // In use until v2 API
 )
 
 // fixedTime returns a fixed time value, useful for ensuring tests are deterministic.
