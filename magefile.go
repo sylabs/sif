@@ -89,7 +89,7 @@ func (Test) Unit() error {
 		return err
 	}
 
-	return sh.RunWith(c.Env(), mg.GoCmd(), c.Args()...)
+	return sh.RunWithV(c.Env(), mg.GoCmd(), c.Args()...)
 }
 
 type Cover mg.Namespace
@@ -108,5 +108,5 @@ func (Cover) Unit(path string) error {
 		return err
 	}
 
-	return sh.RunWith(c.Env(), mg.GoCmd(), c.Args()...)
+	return sh.RunWithV(c.Env(), mg.GoCmd(), c.Args()...)
 }
