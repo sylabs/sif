@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3
 	github.com/google/uuid v1.3.0
-	github.com/magefile/mage v1.12.0
+	github.com/magefile/mage v1.12.1
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
