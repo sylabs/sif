@@ -6,7 +6,7 @@ orbs:
 executors:
   node:
     docker:
-      - image: node:16-slim
+      - image: node:17-slim
   golangci-lint:
     docker:
       - image: golangci/golangci-lint:v1.43-alpine
