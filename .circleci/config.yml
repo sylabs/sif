@@ -12,10 +12,10 @@ executors:
       - image: golangci/golangci-lint:v1.44-alpine
   golang-previous:
     docker:
-      - image: golang:1.16
+      - image: golang:1.17
   golang-latest:
     docker:
-      - image: golang:1.17
+      - image: golang:1.18
 
 jobs:
   lint-markdown:
