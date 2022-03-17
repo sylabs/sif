@@ -25,7 +25,7 @@ To get the siftool CLI program installed to `$(go env GOPATH)/bin` to manipulate
 ```sh
 git clone https://github.com/sylabs/sif
 cd sif
-go run mage.go install
+go run ./magefiles/mage.go install
 ```
 
 ## Go Version Compatibility
