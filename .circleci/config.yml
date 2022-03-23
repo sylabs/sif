@@ -9,7 +9,7 @@ executors:
       - image: node:17-slim
   golangci-lint:
     docker:
-      - image: golangci/golangci-lint:v1.44-alpine
+      - image: golangci/golangci-lint:v1.45-alpine
   golang-previous:
     docker:
       - image: golang:1.17
