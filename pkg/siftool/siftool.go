@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2022, Sylabs Inc. All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
@@ -31,11 +31,20 @@ func (c *command) initApp(cmd *cobra.Command, args []string) error {
 
 // commandOpts contains configured options.
 type commandOpts struct {
-	rootPath string
+	rootPath     string
+	experimental bool
 }
 
 // CommandOpt are used to configure optional command behavior.
 type CommandOpt func(*commandOpts) error
+
+// OptWithExperimental enables/disables experimental commands.
+func OptWithExperimental(b bool) CommandOpt {
+	return func(co *commandOpts) error {
+		co.experimental = b
+		return nil
+	}
+}
 
 // AddCommands adds siftool commands to cmd according to opts.
 //
