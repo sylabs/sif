@@ -115,6 +115,11 @@ func TestAddCommands(t *testing.T) {
 			name: "SetPrim",
 			args: []string{"help", "setprim"},
 		},
+		{
+			name: "Mount",
+			opts: []CommandOpt{OptWithExperimental(true)},
+			args: []string{"help", "mount"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
