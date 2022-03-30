@@ -99,6 +99,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install syft
+          command: curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      - run:
           name: Publish Release
           command: curl -sL https://git.io/goreleaser | bash
 
