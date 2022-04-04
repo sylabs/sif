@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2021-2022, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -24,7 +24,7 @@ func Test_command_getSetPrim(t *testing.T) {
 
 			cmd := c.getSetPrim()
 
-			runCommand(t, cmd, []string{"1", makeTestSIF(t, true)})
+			runCommand(t, cmd, []string{"1", makeTestSIF(t, true)}, nil)
 		})
 	}
 }
