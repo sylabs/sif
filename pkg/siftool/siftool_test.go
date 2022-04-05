@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2021-2022, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -6,6 +6,7 @@ package siftool
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -47,7 +48,7 @@ func makeTestSIF(t *testing.T, withDataObject bool) string {
 	return tf.Name()
 }
 
-func runCommand(t *testing.T, cmd *cobra.Command, args []string) {
+func runCommand(t *testing.T, cmd *cobra.Command, args []string, wantErr error) {
 	t.Helper()
 
 	var out, err bytes.Buffer
@@ -56,8 +57,8 @@ func runCommand(t *testing.T, cmd *cobra.Command, args []string) {
 
 	cmd.SetArgs(args)
 
-	if err := cmd.Execute(); err != nil {
-		t.Fatal(err)
+	if got, want := cmd.Execute(), wantErr; !errors.Is(got, want) {
+		t.Fatalf("got error %v, want %v", got, want)
 	}
 
 	g := goldie.New(t,
@@ -76,6 +77,11 @@ func TestAddCommands(t *testing.T) {
 	}{
 		{
 			name: "SifTool",
+			args: []string{"help"},
+		},
+		{
+			name: "SifToolExperimental",
+			opts: []CommandOpt{OptWithExperimental(true)},
 			args: []string{"help"},
 		},
 		{
@@ -110,6 +116,11 @@ func TestAddCommands(t *testing.T) {
 			name: "SetPrim",
 			args: []string{"help", "setprim"},
 		},
+		{
+			name: "Mount",
+			opts: []CommandOpt{OptWithExperimental(true)},
+			args: []string{"help", "mount"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -121,7 +132,7 @@ func TestAddCommands(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			runCommand(t, cmd, tt.args)
+			runCommand(t, cmd, tt.args, nil)
 		})
 	}
 }
