@@ -68,7 +68,7 @@ jobs:
       - checkout
       - run:
           name: Build Source
-          command: go run ./magefiles/mage.go build:source
+          command: go build ./...
 
   unit-test:
     parameters:
@@ -79,7 +79,7 @@ jobs:
       - checkout
       - run:
           name: Run Unit Tests
-          command: go run ./magefiles/mage.go cover:unit cover.out
+          command: go test -coverprofile cover.out -race ./...
       - codecov/upload:
           file: cover.out
 

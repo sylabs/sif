@@ -25,7 +25,6 @@ var (
 	date    = ""
 	builtBy = ""
 	commit  = ""
-	state   = ""
 )
 
 func writeVersion(w io.Writer) error {
@@ -39,11 +38,7 @@ func writeVersion(w io.Writer) error {
 	}
 
 	if commit != "" {
-		if state == "" {
-			fmt.Fprintf(tw, "Commit:\t%v\n", commit)
-		} else {
-			fmt.Fprintf(tw, "Commit:\t%v (%v)\n", commit, state)
-		}
+		fmt.Fprintf(tw, "Commit:\t%v\n", commit)
 	}
 
 	if date != "" {
