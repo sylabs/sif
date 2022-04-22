@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/sylabs/sif/v2/internal/pkg/exp"
+	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
 func Test_command_getUnmount(t *testing.T) {
@@ -32,7 +32,7 @@ func Test_command_getUnmount(t *testing.T) {
 	})
 
 	testSIF := filepath.Join(corpus, "one-group.sif")
-	if err := exp.Mount(context.Background(), testSIF, path); err != nil {
+	if err := sif.MountFUSE(context.Background(), testSIF, path); err != nil {
 		t.Fatal(err)
 	}
 
