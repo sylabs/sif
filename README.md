@@ -2,7 +2,7 @@
 
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/sylabs/sif/v2?status.svg)](https://pkg.go.dev/github.com/sylabs/sif/v2)
 [![Build Status](https://circleci.com/gh/sylabs/sif.svg?style=shield)](https://circleci.com/gh/sylabs/workflows/sif)
-[![Code Coverage](https://codecov.io/gh/sylabs/sif/branch/master/graph/badge.svg)](https://app.codecov.io/gh/sylabs/sif)
+[![Code Coverage](https://codecov.io/gh/sylabs/sif/branch/main/graph/badge.svg)](https://app.codecov.io/gh/sylabs/sif)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sylabs/sif)](https://goreportcard.com/report/github.com/sylabs/sif)
 [![Powered By GoReleaser](https://img.shields.io/badge/powered%20by-goreleaser-green.svg)](https://github.com/goreleaser)
 
