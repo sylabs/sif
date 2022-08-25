@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -7,7 +7,7 @@
 Package integrity implements functions to add, examine, and verify digital signatures in a SIF
 image.
 
-Sign
+# Sign
 
 To add one or more digital signatures to a SIF, create a Signer, and supply a signing PGP entity:
 
@@ -23,7 +23,7 @@ Finally, to apply the signature(s):
 
 	err := s.Sign()
 
-Verify
+# Verify
 
 To examine and/or verify digital signatures in a SIF, create a Verifier:
 
