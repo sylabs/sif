@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2022, Sylabs Inc. All rights reserved.
 // Copyright (c) 2018, Divya Cote <divya.cote@gmail.com> All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
@@ -111,16 +111,25 @@ func writeList(w io.Writer, f *sif.FileImage) error {
 			if err == nil {
 				fmt.Fprintf(w, "|%s (%s/%s/%s)\n", dt, fs, pt, arch)
 			}
+
 		case sif.DataSignature:
 			ht, _, err := d.SignatureMetadata()
 			if err == nil {
 				fmt.Fprintf(w, "|%s (%s)\n", dt, ht)
 			}
+
 		case sif.DataCryptoMessage:
 			ft, mt, err := d.CryptoMessageMetadata()
 			if err == nil {
 				fmt.Fprintf(w, "|%s (%s/%s)\n", dt, ft, mt)
 			}
+
+		case sif.DataSBOM:
+			f, err := d.SBOMMetadata()
+			if err == nil {
+				fmt.Fprintf(w, "|%s (%s)\n", dt, f)
+			}
+
 		default:
 			fmt.Fprintf(w, "|%s\n", dt)
 		}
@@ -205,6 +214,14 @@ func writeInfo(w io.Writer, v sif.Descriptor) error {
 
 		fmt.Fprintf(tw, "\tFormat Type:\t%v\n", ft)
 		fmt.Fprintf(tw, "\tMessage Type:\t%v\n", mt)
+
+	case sif.DataSBOM:
+		f, err := v.SBOMMetadata()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(tw, "\tFormat:\t%v\n", f)
 	}
 
 	return tw.Flush()
