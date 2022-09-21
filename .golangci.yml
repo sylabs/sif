@@ -40,7 +40,6 @@ linters:
     - prealloc
     - reassign
     - revive
-    - rowserrcheck
     - staticcheck
     - tenv
     - typecheck
