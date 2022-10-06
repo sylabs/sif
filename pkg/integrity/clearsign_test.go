@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"bytes"
 	"crypto"
+	"encoding/json"
 	"errors"
 	"io"
 	"reflect"
@@ -16,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
 	pgperrors "github.com/ProtonMail/go-crypto/openpgp/errors"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/sebdah/goldie/v2"
@@ -41,7 +43,7 @@ func TestSignAndEncodeJSON(t *testing.T) {
 	}{
 		{name: "EncryptedKey", key: &encryptedKey, wantErr: true},
 		{name: "DefaultHash", key: e.PrivateKey},
-		{name: "SHA1", key: e.PrivateKey, hash: crypto.SHA1},
+		{name: "SHA1", key: e.PrivateKey, hash: crypto.SHA1, wantErr: true},
 		{name: "SHA224", key: e.PrivateKey, hash: crypto.SHA224},
 		{name: "SHA256", key: e.PrivateKey, hash: crypto.SHA256},
 		{name: "SHA384", key: e.PrivateKey, hash: crypto.SHA384},
@@ -121,7 +123,7 @@ func TestVerifyAndDecodeJSON(t *testing.T) {
 		{name: "CorruptedSignature", el: openpgp.EntityList{e}, corrupter: corruptSignature},
 		{name: "VerifyOnly", el: openpgp.EntityList{e}, wantEntity: e},
 		{name: "DefaultHash", el: openpgp.EntityList{e}, output: &testType{}, wantEntity: e},
-		{name: "SHA1", hash: crypto.SHA1, el: openpgp.EntityList{e}, output: &testType{}, wantEntity: e},
+		{name: "SHA1", hash: crypto.SHA1, el: openpgp.EntityList{e}, wantErr: pgperrors.StructuralError("hash algorithm mismatch with cleartext message headers")}, //nolint:lll
 		{name: "SHA224", hash: crypto.SHA224, el: openpgp.EntityList{e}, output: &testType{}, wantEntity: e},
 		{name: "SHA256", hash: crypto.SHA256, el: openpgp.EntityList{e}, output: &testType{}, wantEntity: e},
 		{name: "SHA384", hash: crypto.SHA384, el: openpgp.EntityList{e}, output: &testType{}, wantEntity: e},
@@ -136,10 +138,17 @@ func TestVerifyAndDecodeJSON(t *testing.T) {
 			config := packet.Config{
 				DefaultHash: tt.hash,
 			}
-			err := signAndEncodeJSON(&b, testValue, e.PrivateKey, &config)
+
+			// Manually sign and encode rather than calling signAndEncodeJSON, since we want to
+			// test unsupported hash algorithms.
+			plaintext, err := clearsign.Encode(&b, e.PrivateKey, &config)
 			if err != nil {
 				t.Fatal(err)
 			}
+			if err := json.NewEncoder(plaintext).Encode(testValue); err != nil {
+				t.Fatal(err)
+			}
+			plaintext.Close()
 
 			// Introduce corruption, if applicable.
 			if tt.corrupter != nil {
