@@ -59,6 +59,17 @@ jobs:
           name: Check Test Corpus Tidiness
           command: git diff --exit-code --
 
+  check-vulnerabilities:
+    executor: golang-latest
+    steps:
+      - checkout
+      - run:
+          name: Install govulncheck
+          command: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run:
+          name: Check for vulnerabilities
+          command: govulncheck ./...
+
   build-source:
     parameters:
       e:
@@ -114,6 +125,7 @@ workflows:
       - lint-source
       - check-go-mod
       - check-test-corpus
+      - check-vulnerabilities
       - build-source:
           matrix:
             parameters:
