@@ -26,10 +26,6 @@ func Test_command_getList(t *testing.T) {
 			path: filepath.Join(corpus, "one-group.sif"),
 		},
 		{
-			name: "OneGroupSigned",
-			path: filepath.Join(corpus, "one-group-signed.sif"),
-		},
-		{
 			name: "OneGroupSignedLegacy",
 			path: filepath.Join(corpus, "one-group-signed-legacy.sif"),
 		},
@@ -42,12 +38,12 @@ func Test_command_getList(t *testing.T) {
 			path: filepath.Join(corpus, "one-group-signed-legacy-group.sif"),
 		},
 		{
-			name: "TwoGroups",
-			path: filepath.Join(corpus, "two-groups.sif"),
+			name: "OneGroupSignedPGP",
+			path: filepath.Join(corpus, "one-group-signed-pgp.sif"),
 		},
 		{
-			name: "TwoGroupsSigned",
-			path: filepath.Join(corpus, "two-groups-signed.sif"),
+			name: "TwoGroups",
+			path: filepath.Join(corpus, "two-groups.sif"),
 		},
 		{
 			name: "TwoGroupsSignedLegacy",
@@ -60,6 +56,10 @@ func Test_command_getList(t *testing.T) {
 		{
 			name: "TwoGroupsSignedLegacyGroup",
 			path: filepath.Join(corpus, "two-groups-signed-legacy-group.sif"),
+		},
+		{
+			name: "TwoGroupsSignedPGP",
+			path: filepath.Join(corpus, "two-groups-signed-pgp.sif"),
 		},
 	}
 	for _, tt := range tests {
