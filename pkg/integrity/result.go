@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -6,7 +6,10 @@
 package integrity
 
 import (
+	"crypto"
+
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
@@ -14,6 +17,7 @@ import (
 type VerifyResult struct {
 	sig      sif.Descriptor
 	verified []sif.Descriptor
+	aks      []dsse.AcceptedKey
 	e        *openpgp.Entity
 	err      error
 }
@@ -26,6 +30,15 @@ func (r VerifyResult) Signature() sif.Descriptor {
 // Verified returns the data objects that were verified.
 func (r VerifyResult) Verified() []sif.Descriptor {
 	return r.verified
+}
+
+// keys returns the public key(s) used to verify the signature.
+func (r VerifyResult) keys() []crypto.PublicKey {
+	keys := make([]crypto.PublicKey, 0, len(r.aks))
+	for _, ak := range r.aks {
+		keys = append(keys, ak.Public)
+	}
+	return keys
 }
 
 // Entity returns the signing entity, or nil if the signing entity could not be determined.
