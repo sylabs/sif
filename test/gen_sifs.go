@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"crypto"
 	"errors"
 	"log"
 	"os"
@@ -14,9 +15,17 @@ import (
 	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/sigstore/sigstore/pkg/cryptoutils"
+	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sylabs/sif/v2/pkg/integrity"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
+
+// getSignerVerifier returns a SignerVerifier read from the PEM file at path.
+func getSignerVerifier(name string) (signature.SignerVerifier, error) { //nolint:ireturn
+	path := filepath.Join("keys", name)
+	return signature.LoadSignerVerifierFromPEMFile(path, crypto.SHA256, cryptoutils.SkipPassword)
+}
 
 var errUnexpectedNumEntities = errors.New("unexpected number of entities")
 
@@ -39,6 +48,16 @@ func getEntity() (*openpgp.Entity, error) {
 }
 
 func generateImages() error {
+	ed25519, err := getSignerVerifier("ed25519.pem")
+	if err != nil {
+		return err
+	}
+
+	rsa, err := getSignerVerifier("rsa.pem")
+	if err != nil {
+		return err
+	}
+
 	e, err := getEntity()
 	if err != nil {
 		return err
@@ -160,6 +179,16 @@ func generateImages() error {
 			},
 		},
 		{
+			path: "one-group-signed-dsse.sif",
+			diFns: []func() (sif.DescriptorInput, error){
+				partSystem,
+				partPrimSys,
+			},
+			signOpts: []integrity.SignerOpt{
+				integrity.OptSignWithSigner(ed25519, rsa),
+			},
+		},
+		{
 			path: "one-group-signed-pgp.sif",
 			diFns: []func() (sif.DescriptorInput, error){
 				partSystem,
@@ -177,6 +206,17 @@ func generateImages() error {
 				partSystem,
 				partPrimSys,
 				partSystemGroup2,
+			},
+		},
+		{
+			path: "two-groups-signed-dsse.sif",
+			diFns: []func() (sif.DescriptorInput, error){
+				partSystem,
+				partPrimSys,
+				partSystemGroup2,
+			},
+			signOpts: []integrity.SignerOpt{
+				integrity.OptSignWithSigner(ed25519, rsa),
 			},
 		},
 		{
