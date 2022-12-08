@@ -54,7 +54,7 @@ jobs:
       - checkout
       - run:
           name: Generate Test Corpus
-          command: pushd test/ && go run ./gen_sifs.go && popd
+          command: pushd test/images/ && go run ./gen_sifs.go && popd
       - run:
           name: Check Test Corpus Tidiness
           command: git diff --exit-code --
