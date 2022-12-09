@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -454,7 +454,7 @@ func TestNewVerifier(t *testing.T) { //nolint:maintidx
 	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
 	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
-	sv := getTestSignerVerifier(t, "ed25519.pem")
+	sv := getTestSignerVerifier(t, "ed25519-private.pem")
 
 	kr := openpgp.EntityList{getTestEntity(t)}
 
@@ -982,7 +982,7 @@ func TestVerifier_Verify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ed25519 := getTestSignerVerifier(t, "ed25519.pem")
+	ed25519 := getTestSignerVerifier(t, "ed25519-private.pem")
 	ed25519Pub, err := ed25519.PublicKey()
 	if err != nil {
 		t.Fatal(err)
@@ -1030,7 +1030,7 @@ func TestVerifier_Verify(t *testing.T) {
 			name: "SignatureNotValidErrorDSSE",
 			f:    oneGroupSignedDSSEImage,
 			opts: []VerifierOpt{
-				OptVerifyWithVerifier(getTestSignerVerifier(t, "ecdsa.pem")), // Not signed with ECDSA.
+				OptVerifyWithVerifier(getTestSignerVerifier(t, "ecdsa-private.pem")), // Not signed with ECDSA.
 			},
 			wantErr: &SignatureNotValidError{ID: 3},
 		},

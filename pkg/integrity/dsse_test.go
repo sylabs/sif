@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2022-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -22,8 +22,8 @@ import (
 )
 
 func Test_dsseEncoder_signMessage(t *testing.T) {
-	ed25519 := getTestSignerVerifier(t, "ed25519.pem")
-	rsa := getTestSignerVerifier(t, "rsa.pem")
+	ed25519 := getTestSignerVerifier(t, "ed25519-private.pem")
+	rsa := getTestSignerVerifier(t, "rsa-private.pem")
 
 	tests := []struct {
 		name     string
@@ -143,9 +143,9 @@ func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
 }
 
 func Test_dsseDecoder_verifyMessage(t *testing.T) {
-	ecdsa := getTestSignerVerifier(t, "ecdsa.pem")
-	ed25519 := getTestSignerVerifier(t, "ed25519.pem")
-	rsa := getTestSignerVerifier(t, "rsa.pem")
+	ecdsa := getTestSignerVerifier(t, "ecdsa-private.pem")
+	ed25519 := getTestSignerVerifier(t, "ed25519-private.pem")
+	rsa := getTestSignerVerifier(t, "rsa-private.pem")
 
 	ecdsaPub, err := ecdsa.PublicKey()
 	if err != nil {
