@@ -454,7 +454,7 @@ func TestNewVerifier(t *testing.T) { //nolint:maintidx
 	oneGroupImage := loadContainer(t, filepath.Join(corpus, "one-group.sif"))
 	twoGroupImage := loadContainer(t, filepath.Join(corpus, "two-groups.sif"))
 
-	sv := getTestSignerVerifier(t, "ed25519-private.pem")
+	sv := getTestVerifier(t, "ed25519-public.pem", crypto.Hash(0))
 
 	kr := openpgp.EntityList{getTestEntity(t)}
 
@@ -982,11 +982,7 @@ func TestVerifier_Verify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ed25519 := getTestSignerVerifier(t, "ed25519-private.pem")
-	ed25519Pub, err := ed25519.PublicKey()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ed25519 := getTestVerifier(t, "ed25519-public.pem", crypto.Hash(0))
 
 	e := getTestEntity(t)
 
@@ -1030,7 +1026,9 @@ func TestVerifier_Verify(t *testing.T) {
 			name: "SignatureNotValidErrorDSSE",
 			f:    oneGroupSignedDSSEImage,
 			opts: []VerifierOpt{
-				OptVerifyWithVerifier(getTestSignerVerifier(t, "ecdsa-private.pem")), // Not signed with ECDSA.
+				OptVerifyWithVerifier(
+					getTestVerifier(t, "ecdsa-public.pem", crypto.SHA256), // Not signed with ECDSA.
+				),
 			},
 			wantErr: &SignatureNotValidError{ID: 3},
 		},
@@ -1065,8 +1063,10 @@ func TestVerifier_Verify(t *testing.T) {
 			testCallback:    true,
 			wantCBSignature: sigDSSE,
 			wantCBVerified:  verifiedDSSE,
-			wantCBKeys:      []crypto.PublicKey{ed25519Pub},
-			wantCBEntity:    nil,
+			wantCBKeys: []crypto.PublicKey{
+				getTestPublicKey(t, "ed25519-public.pem"),
+			},
+			wantCBEntity: nil,
 		},
 		{
 			name: "OneGroupSignedPGPWithCallback",
