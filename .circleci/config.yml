@@ -12,13 +12,10 @@ executors:
       - image: golangci/golangci-lint:v1.50-alpine
   golang-previous:
     docker:
-      - image: golang:1.18
+      - image: golang:1.19
   golang-latest:
     docker:
-      - image: golang:1.19
-  golang-rc:
-    docker:
-      - image: golang:1.20-rc
+      - image: golang:1.20
 
 jobs:
   lint-markdown:
@@ -132,11 +129,11 @@ workflows:
       - build-source:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-rc"]
+              e: ["golang-previous", "golang-latest"]
       - unit-test:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-rc"]
+              e: ["golang-previous", "golang-latest"]
       - release-test
 
   tagged-release:
