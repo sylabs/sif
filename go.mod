@@ -3,7 +3,7 @@ module github.com/sylabs/sif/v2
 go 1.19
 
 require (
-	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4
+	github.com/ProtonMail/go-crypto v0.0.0-20230201104953-d1d05f4e2bfb
 	github.com/google/uuid v1.3.0
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/secure-systems-lab/go-securesystemslib v0.4.0

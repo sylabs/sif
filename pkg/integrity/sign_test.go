@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -171,9 +171,9 @@ func TestNewGroupSigner(t *testing.T) {
 			name:        "OptSignGroupMetadataHash",
 			fi:          twoGroupImage,
 			groupID:     1,
-			opts:        []groupSignerOpt{optSignGroupMetadataHash(crypto.SHA1)},
+			opts:        []groupSignerOpt{optSignGroupMetadataHash(crypto.SHA384)},
 			wantObjects: []uint32{1, 2},
-			wantMDHash:  crypto.SHA1,
+			wantMDHash:  crypto.SHA384,
 		},
 		{
 			name:    "OptSignGroupMetadataHash",
@@ -287,7 +287,7 @@ func TestGroupSigner_Sign(t *testing.T) {
 				f:      twoGroups,
 				id:     1,
 				ods:    []sif.Descriptor{d1},
-				mdHash: crypto.SHA1,
+				mdHash: crypto.SHA256,
 				fp:     encrypted.PrimaryKey.Fingerprint,
 			},
 			wantErr: true,
