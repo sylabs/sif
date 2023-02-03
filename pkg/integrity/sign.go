@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -330,7 +330,7 @@ func NewSigner(f *sif.FileImage, opts ...SignerOpt) (*Signer, error) {
 	switch {
 	case so.ss != nil:
 		var err error
-		en, err = newDSSEEncoder(so.ss)
+		en, err = newDSSEEncoder(so.ss...)
 		if err != nil {
 			return nil, fmt.Errorf("integrity: %w", err)
 		}

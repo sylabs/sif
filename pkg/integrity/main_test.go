@@ -56,6 +56,24 @@ func getTestSigner(t *testing.T, name string, h crypto.Hash) signature.Signer { 
 	return sv
 }
 
+type wrapSigner struct {
+	signature.Signer
+	h crypto.Hash
+}
+
+func (s *wrapSigner) HashFunc() crypto.Hash { return s.h }
+
+// getTestSignerWithOpts returns a Signer read from the PEM file at path, wrapped to implement the
+// crypto.SignerOpts interface.
+func getTestSignerWithOpts(t *testing.T, name string, h crypto.Hash) *wrapSigner {
+	t.Helper()
+
+	return &wrapSigner{
+		Signer: getTestSigner(t, name, h),
+		h:      h,
+	}
+}
+
 // getTestVerifier returns a Verifier read from the PEM file at path.
 func getTestVerifier(t *testing.T, name string, h crypto.Hash) signature.Verifier { //nolint:ireturn
 	t.Helper()

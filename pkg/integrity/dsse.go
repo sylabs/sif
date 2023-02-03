@@ -1,4 +1,4 @@
-// Copyright (c) 2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2022-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -26,25 +26,24 @@ type dsseEncoder struct {
 	payloadType string
 }
 
-// newDSSEEncoder returns an encoder that signs messages in DSSE format according to opts, with key
-// material from ss. SHA256 is used as the hash algorithm, unless overridden by opts.
-func newDSSEEncoder(ss []signature.Signer, opts ...signature.SignOption) (*dsseEncoder, error) {
-	var so crypto.SignerOpts
-	for _, opt := range opts {
-		opt.ApplyCryptoSignerOpts(&so)
-	}
+var errMultipleHashes = errors.New("multiple hash algorithms specified")
 
-	// If SignerOpts not explicitly supplied, set default hash algorithm.
-	if so == nil {
-		so = crypto.SHA256
-		opts = append(opts, options.WithCryptoSignerOpts(so))
-	}
+// newDSSEEncoder returns an encoder that signs messages in DSSE format, with key material from ss.
+func newDSSEEncoder(ss ...signature.Signer) (*dsseEncoder, error) {
+	var h crypto.Hash
 
 	dss := make([]dsse.SignVerifier, 0, len(ss))
-	for _, s := range ss {
-		ds, err := newDSSESigner(s, opts...)
+	for i, s := range ss {
+		ds, err := newDSSESigner(s)
 		if err != nil {
 			return nil, err
+		}
+
+		// All signers must use the same hash, since the descriptor can only express one value.
+		if i == 0 {
+			h = ds.HashFunc()
+		} else if h != ds.HashFunc() {
+			return nil, errMultipleHashes
 		}
 
 		dss = append(dss, ds)
@@ -57,7 +56,7 @@ func newDSSEEncoder(ss []signature.Signer, opts ...signature.SignOption) (*dsseE
 
 	return &dsseEncoder{
 		es:          es,
-		h:           so.HashFunc(),
+		h:           h,
 		payloadType: metadataMediaType,
 	}, nil
 }
@@ -137,12 +136,23 @@ func (de *dsseDecoder) verifyMessage(r io.Reader, h crypto.Hash, vr *VerifyResul
 type dsseSigner struct {
 	s    signature.Signer
 	opts []signature.SignOption
+	h    crypto.Hash
 	pub  crypto.PublicKey
 }
 
-// newDSSESigner returns a dsse.SignVerifier that uses s to sign according to opts. Note that the
-// returned value is suitable only for signing, and not verification.
-func newDSSESigner(s signature.Signer, opts ...signature.SignOption) (*dsseSigner, error) {
+// newDSSESigner returns a dsse.SignVerifier that uses s to sign. The SHA-256 hash algorithm is
+// used unless s implements the crypto.SignerOpts interface and specifies an alternative algorithm.
+// Note that the returned value is suitable only for signing, and not verification.
+func newDSSESigner(s signature.Signer) (*dsseSigner, error) {
+	var opts []signature.SignOption
+
+	so, ok := s.(crypto.SignerOpts)
+	if !ok {
+		// Unable to determine hash algorithm used by signer, so override with SHA256.
+		so = crypto.SHA256
+		opts = append(opts, options.WithCryptoSignerOpts(so))
+	}
+
 	pub, err := s.PublicKey()
 	if err != nil {
 		return nil, err
@@ -151,6 +161,7 @@ func newDSSESigner(s signature.Signer, opts ...signature.SignOption) (*dsseSigne
 	return &dsseSigner{
 		s:    s,
 		opts: opts,
+		h:    so.HashFunc(),
 		pub:  pub,
 	}, nil
 }
@@ -158,6 +169,12 @@ func newDSSESigner(s signature.Signer, opts ...signature.SignOption) (*dsseSigne
 // Sign signs the supplied data.
 func (s *dsseSigner) Sign(data []byte) ([]byte, error) {
 	return s.s.SignMessage(bytes.NewReader(data), s.opts...)
+}
+
+// HashFunc returns an identifier for the hash function used to produce the message passed to
+// Signer.Sign, or else zero to indicate no hashing.
+func (s *dsseSigner) HashFunc() crypto.Hash {
+	return s.h
 }
 
 var errSignNotImplemented = errors.New("sign not implemented")

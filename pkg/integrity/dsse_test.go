@@ -18,17 +18,23 @@ import (
 	"github.com/sebdah/goldie/v2"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/sigstore/sigstore/pkg/signature"
-	"github.com/sigstore/sigstore/pkg/signature/options"
 )
 
 func Test_dsseEncoder_signMessage(t *testing.T) {
 	tests := []struct {
 		name     string
 		signers  []signature.Signer
-		signOpts []signature.SignOption
-		wantErr  bool
+		wantErr  error
 		wantHash crypto.Hash
 	}{
+		{
+			name: "MultipleHashAlgorithms",
+			signers: []signature.Signer{
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA384),
+			},
+			wantErr: errMultipleHashes,
+		},
 		{
 			name: "Multi",
 			signers: []signature.Signer{
@@ -40,37 +46,28 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 		{
 			name: "ED25519",
 			signers: []signature.Signer{
-				getTestSigner(t, "ed25519-private.pem", crypto.Hash(0)),
-			},
-			signOpts: []signature.SignOption{
-				options.WithCryptoSignerOpts(crypto.Hash(0)),
+				getTestSignerWithOpts(t, "ed25519-private.pem", crypto.Hash(0)),
 			},
 			wantHash: crypto.Hash(0),
 		},
 		{
 			name: "RSA_SHA256",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
 			},
 			wantHash: crypto.SHA256,
 		},
 		{
 			name: "RSA_SHA384",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA384),
-			},
-			signOpts: []signature.SignOption{
-				options.WithCryptoSignerOpts(crypto.SHA384),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA384),
 			},
 			wantHash: crypto.SHA384,
 		},
 		{
 			name: "RSA_SHA512",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA512),
-			},
-			signOpts: []signature.SignOption{
-				options.WithCryptoSignerOpts(crypto.SHA512),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA512),
 			},
 			wantHash: crypto.SHA512,
 		},
@@ -81,17 +78,17 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := bytes.Buffer{}
 
-			en, err := newDSSEEncoder(tt.signers, tt.signOpts...)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			ht, err := en.signMessage(&b, strings.NewReader(testMessage))
-			if got, want := err, tt.wantErr; (got != nil) != want {
+			en, err := newDSSEEncoder(tt.signers...)
+			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Fatalf("got error %v, wantErr %v", got, want)
 			}
 
 			if err == nil {
+				ht, err := en.signMessage(&b, strings.NewReader(testMessage))
+				if err != nil {
+					t.Fatal(err)
+				}
+
 				if got, want := ht, tt.wantHash; got != want {
 					t.Errorf("got hash %v, want %v", got, want)
 				}
@@ -149,7 +146,6 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 	tests := []struct {
 		name        string
 		signers     []signature.Signer
-		signOpts    []signature.SignOption
 		corrupter   func(*testing.T, *dsseEncoder, *dsse.Envelope)
 		de          *dsseDecoder
 		wantErr     error
@@ -197,8 +193,8 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "Multi_SHA256",
 			signers: []signature.Signer{
-				getTestSigner(t, "ecdsa-private.pem", crypto.SHA256),
-				getTestSigner(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "ecdsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "ecdsa-public.pem", crypto.SHA256),
@@ -213,8 +209,8 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "Multi_SHA256_ECDSA",
 			signers: []signature.Signer{
-				getTestSigner(t, "ecdsa-private.pem", crypto.SHA256),
-				getTestSigner(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "ecdsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "ecdsa-public.pem", crypto.SHA256),
@@ -227,8 +223,8 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "Multi_SHA256_RSA",
 			signers: []signature.Signer{
-				getTestSigner(t, "ecdsa-private.pem", crypto.SHA256),
-				getTestSigner(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "ecdsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA256),
@@ -241,7 +237,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "ECDSA_SHA256",
 			signers: []signature.Signer{
-				getTestSigner(t, "ecdsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "ecdsa-private.pem", crypto.SHA256),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "ecdsa-public.pem", crypto.SHA256),
@@ -254,7 +250,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "ED25519",
 			signers: []signature.Signer{
-				getTestSigner(t, "ed25519-private.pem", crypto.Hash(0)),
+				getTestSignerWithOpts(t, "ed25519-private.pem", crypto.Hash(0)),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "ed25519-public.pem", crypto.Hash(0)),
@@ -267,7 +263,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "RSA_SHA256",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA256),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA256),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA256),
@@ -280,10 +276,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "RSA_SHA384",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA384),
-			},
-			signOpts: []signature.SignOption{
-				options.WithCryptoSignerOpts(crypto.SHA384),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA384),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA384),
@@ -296,10 +289,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		{
 			name: "RSA_SHA512",
 			signers: []signature.Signer{
-				getTestSigner(t, "rsa-private.pem", crypto.SHA512),
-			},
-			signOpts: []signature.SignOption{
-				options.WithCryptoSignerOpts(crypto.SHA512),
+				getTestSignerWithOpts(t, "rsa-private.pem", crypto.SHA512),
 			},
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA512),
@@ -316,7 +306,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := bytes.Buffer{}
 
-			en, err := newDSSEEncoder(tt.signers, tt.signOpts...)
+			en, err := newDSSEEncoder(tt.signers...)
 			if err != nil {
 				t.Fatal(err)
 			}
