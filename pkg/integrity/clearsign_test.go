@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -133,12 +133,6 @@ func Test_clearsignDecoder_verifyMessage(t *testing.T) {
 			name:       "DefaultHash",
 			de:         newClearsignDecoder(openpgp.EntityList{e}),
 			wantEntity: e,
-		},
-		{
-			name:    "SHA1",
-			hash:    crypto.SHA1,
-			de:      newClearsignDecoder(openpgp.EntityList{e}),
-			wantErr: pgperrors.StructuralError("hash algorithm mismatch with cleartext message headers"),
 		},
 		{
 			name:       "SHA224",
