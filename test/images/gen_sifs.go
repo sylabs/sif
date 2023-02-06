@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -21,10 +21,11 @@ import (
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
-// getSignerVerifier returns a SignerVerifier read from the PEM file at path.
-func getSignerVerifier(name string) (signature.SignerVerifier, error) { //nolint:ireturn
+// getSigner returns a Signer that signs with key material from the PEM file with the specified
+// name, using hash algorithm h.
+func getSigner(name string, h crypto.Hash) (signature.Signer, error) { //nolint:ireturn
 	path := filepath.Join("..", "keys", name)
-	return signature.LoadSignerVerifierFromPEMFile(path, crypto.SHA256, cryptoutils.SkipPassword)
+	return signature.LoadSignerFromPEMFile(path, h, cryptoutils.SkipPassword)
 }
 
 var errUnexpectedNumEntities = errors.New("unexpected number of entities")
@@ -48,12 +49,12 @@ func getEntity() (*openpgp.Entity, error) {
 }
 
 func generateImages() error {
-	ed25519, err := getSignerVerifier("ed25519.pem")
+	ed25519, err := getSigner("ed25519-private.pem", crypto.Hash(0))
 	if err != nil {
 		return err
 	}
 
-	rsa, err := getSignerVerifier("rsa.pem")
+	rsa, err := getSigner("rsa-private.pem", crypto.SHA256)
 	if err != nil {
 		return err
 	}
