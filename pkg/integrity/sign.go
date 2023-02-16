@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -7,6 +7,7 @@ package integrity
 
 import (
 	"bytes"
+	"context"
 	"crypto"
 	"encoding/json"
 	"errors"
@@ -32,7 +33,7 @@ var ErrNoKeyMaterial = errors.New("key material not provided")
 type encoder interface {
 	// signMessage signs the message from r, and writes the result to w. On success, the signature
 	// hash function is returned.
-	signMessage(w io.Writer, r io.Reader) (ht crypto.Hash, err error)
+	signMessage(ctx context.Context, w io.Writer, r io.Reader) (ht crypto.Hash, err error)
 }
 
 type groupSigner struct {
@@ -149,7 +150,7 @@ func (gs *groupSigner) addObject(od sif.Descriptor) error {
 }
 
 // sign creates a digital signature as specified by gs.
-func (gs *groupSigner) sign() (sif.DescriptorInput, error) {
+func (gs *groupSigner) sign(ctx context.Context) (sif.DescriptorInput, error) {
 	// Get minimum object ID in group. Object IDs in the image metadata will be relative to this.
 	minID, err := getGroupMinObjectID(gs.f, gs.id)
 	if err != nil {
@@ -170,7 +171,7 @@ func (gs *groupSigner) sign() (sif.DescriptorInput, error) {
 
 	// Sign image metadata.
 	b := bytes.Buffer{}
-	ht, err := gs.en.signMessage(&b, bytes.NewReader(enc))
+	ht, err := gs.en.signMessage(ctx, &b, bytes.NewReader(enc))
 	if err != nil {
 		return sif.DescriptorInput{}, fmt.Errorf("failed to sign message: %w", err)
 	}
@@ -190,6 +191,7 @@ type signOpts struct {
 	objectIDs     [][]uint32
 	timeFunc      func() time.Time
 	deterministic bool
+	ctx           context.Context //nolint:containedctx
 }
 
 // SignerOpt are used to configure so.
@@ -253,6 +255,14 @@ func OptSignDeterministic() SignerOpt {
 	}
 }
 
+// OptSignWithContext specifies that the given context should be used in RPC to external services.
+func OptSignWithContext(ctx context.Context) SignerOpt {
+	return func(so *signOpts) error {
+		so.ctx = ctx
+		return nil
+	}
+}
+
 // withGroupedObjects splits the objects represented by ids into object groups, and calls fn once
 // per object group.
 func withGroupedObjects(f *sif.FileImage, ids []uint32, fn func(uint32, []uint32) error) error {
@@ -309,6 +319,7 @@ func NewSigner(f *sif.FileImage, opts ...SignerOpt) (*Signer, error) {
 
 	so := signOpts{
 		timeFunc: time.Now,
+		ctx:      context.Background(),
 	}
 
 	// Apply options.
@@ -391,7 +402,7 @@ func NewSigner(f *sif.FileImage, opts ...SignerOpt) (*Signer, error) {
 // Sign adds digital signatures as specified by s.
 func (s *Signer) Sign() error {
 	for _, gs := range s.signers {
-		di, err := gs.sign()
+		di, err := gs.sign(s.opts.ctx)
 		if err != nil {
 			return fmt.Errorf("integrity: %w", err)
 		}
