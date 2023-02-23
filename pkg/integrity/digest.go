@@ -117,6 +117,7 @@ func (d digest) MarshalJSON() ([]byte, error) {
 func (d *digest) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
+		//nolint:errorlint // Go 1.19 compatibility
 		return fmt.Errorf("%w: %v", errDigestMalformed, err)
 	}
 
@@ -129,6 +130,7 @@ func (d *digest) UnmarshalJSON(data []byte) error {
 
 	v, err := hex.DecodeString(value)
 	if err != nil {
+		//nolint:errorlint // Go 1.19 compatibility
 		return fmt.Errorf("%w: %v", errDigestMalformed, err)
 	}
 

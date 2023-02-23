@@ -125,6 +125,7 @@ func (de *dsseDecoder) verifyMessage(r io.Reader, h crypto.Hash, vr *VerifyResul
 
 	vr.aks, err = v.Verify(context.TODO(), &e)
 	if err != nil {
+		//nolint:errorlint // Go 1.19 compatibility
 		return nil, fmt.Errorf("%w: %v", errDSSEVerifyEnvelopeFailed, err)
 	}
 
