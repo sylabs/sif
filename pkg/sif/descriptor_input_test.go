@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2021-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -116,6 +116,13 @@ func TestNewDescriptorInput(t *testing.T) {
 			t:    DataGeneric,
 			opts: []DescriptorInputOpt{
 				OptObjectTime(time.Unix(946702800, 0)),
+			},
+		},
+		{
+			name: "OptMetadata",
+			t:    DataGeneric,
+			opts: []DescriptorInputOpt{
+				OptMetadata(testMetadata{100}),
 			},
 		},
 		{

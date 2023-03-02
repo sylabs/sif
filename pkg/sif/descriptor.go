@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
@@ -10,6 +10,7 @@ package sif
 import (
 	"bytes"
 	"crypto"
+	"encoding"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -78,26 +79,47 @@ func (d *rawDescriptor) setName(name string) error {
 
 var errExtraTooLarge = errors.New("extra value too large")
 
-// setExtra encodes v into the extra field of d.
-func (d *rawDescriptor) setExtra(v interface{}) error {
+// setExtra encodes v into the extra field of d. If the encoding.BinaryMarshaler interface is
+// implemented by v, it is used for marshaling. Otherwise, binary.Write() is used.
+func (d *rawDescriptor) setExtra(v any) error {
 	if v == nil {
 		return nil
 	}
 
-	if binary.Size(v) > len(d.Extra) {
+	var extra []byte
+
+	if m, ok := v.(encoding.BinaryMarshaler); ok {
+		b, err := m.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		extra = b
+	} else {
+		b := new(bytes.Buffer)
+		if err := binary.Write(b, binary.LittleEndian, v); err != nil {
+			return err
+		}
+		extra = b.Bytes()
+	}
+
+	if len(extra) > len(d.Extra) {
 		return errExtraTooLarge
 	}
 
-	b := new(bytes.Buffer)
-	if err := binary.Write(b, binary.LittleEndian, v); err != nil {
-		return err
-	}
-
-	for i := copy(d.Extra[:], b.Bytes()); i < len(d.Extra); i++ {
+	for i := copy(d.Extra[:], extra); i < len(d.Extra); i++ {
 		d.Extra[i] = 0
 	}
 
 	return nil
+}
+
+// getExtra decodes the extra fields of d into v. If the encoding.BinaryUnmarshaler interface is
+// implemented by v, it is used for unmarshaling. Otherwise, binary.Read() is used.
+func (d *rawDescriptor) getExtra(v any) error {
+	if u, ok := v.(encoding.BinaryUnmarshaler); ok {
+		return u.UnmarshalBinary(d.Extra[:])
+	}
+	return binary.Read(bytes.NewReader(d.Extra[:]), binary.LittleEndian, v)
 }
 
 // getPartitionMetadata gets metadata for a partition data object.
@@ -108,9 +130,8 @@ func (d rawDescriptor) getPartitionMetadata() (FSType, PartType, string, error) 
 
 	var p partition
 
-	b := bytes.NewReader(d.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &p); err != nil {
-		return 0, 0, "", fmt.Errorf("%w", err)
+	if err := d.getExtra(&p); err != nil {
+		return 0, 0, "", err
 	}
 
 	return p.Fstype, p.Parttype, p.Arch.GoArch(), nil
@@ -168,11 +189,24 @@ func (d Descriptor) ModifiedAt() time.Time { return time.Unix(d.raw.ModifiedAt, 
 // Name returns the name of the data object.
 func (d Descriptor) Name() string { return strings.TrimRight(string(d.raw.Name[:]), "\000") }
 
+// GetMetadata reads metadata from d into v. If the encoding.BinaryUnmarshaler interface is
+// implemented by v, it is used for unmarshaling. Otherwise, binary.Read() is used.
+func (d Descriptor) GetMetadata(v any) error {
+	if err := d.raw.getExtra(v); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	return nil
+}
+
 // PartitionMetadata gets metadata for a partition data object.
 //
 //nolint:nonamedreturns // Named returns effective as documentation.
 func (d Descriptor) PartitionMetadata() (fs FSType, pt PartType, arch string, err error) {
-	return d.raw.getPartitionMetadata()
+	fs, pt, arch, err = d.raw.getPartitionMetadata()
+	if err != nil {
+		return 0, 0, "", fmt.Errorf("%w", err)
+	}
+	return fs, pt, arch, err
 }
 
 var errHashUnsupported = errors.New("hash algorithm unsupported")
@@ -204,8 +238,7 @@ func (d Descriptor) SignatureMetadata() (ht crypto.Hash, fp []byte, err error) {
 
 	var s signature
 
-	b := bytes.NewReader(d.raw.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &s); err != nil {
+	if err := d.raw.getExtra(&s); err != nil {
 		return ht, fp, fmt.Errorf("%w", err)
 	}
 
@@ -232,8 +265,7 @@ func (d Descriptor) CryptoMessageMetadata() (FormatType, MessageType, error) {
 
 	var m cryptoMessage
 
-	b := bytes.NewReader(d.raw.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &m); err != nil {
+	if err := d.raw.getExtra(&m); err != nil {
 		return 0, 0, fmt.Errorf("%w", err)
 	}
 
@@ -248,8 +280,7 @@ func (d Descriptor) SBOMMetadata() (SBOMFormat, error) {
 
 	var s sbom
 
-	b := bytes.NewReader(d.raw.Extra[:])
-	if err := binary.Read(b, binary.LittleEndian, &s); err != nil {
+	if err := d.raw.getExtra(&s); err != nil {
 		return 0, fmt.Errorf("%w", err)
 	}
 
