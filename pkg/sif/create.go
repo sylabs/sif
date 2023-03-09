@@ -636,9 +636,6 @@ func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
 	if err != nil && !errors.Is(err, ErrObjectNotFound) {
 		return fmt.Errorf("%w", err)
 	}
-
-	f.h.Arch = getSIFArch(arch)
-
 	extra := partition{
 		Fstype:   fs,
 		Parttype: PartPrimSys,
@@ -648,6 +645,8 @@ func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
 	if err := descr.setExtra(extra); err != nil {
 		return fmt.Errorf("%w", err)
 	}
+
+	descr.ModifiedAt = so.t.Unix()
 
 	if olddescr != nil {
 		oldfs, _, oldarch, err := olddescr.getPartitionMetadata()
@@ -664,12 +663,15 @@ func (f *FileImage) SetPrimPart(id uint32, opts ...SetOpt) error {
 		if err := olddescr.setExtra(oldextra); err != nil {
 			return fmt.Errorf("%w", err)
 		}
+
+		olddescr.ModifiedAt = so.t.Unix()
 	}
 
 	if err := f.writeDescriptors(); err != nil {
 		return fmt.Errorf("%w", err)
 	}
 
+	f.h.Arch = getSIFArch(arch)
 	f.h.ModifiedAt = so.t.Unix()
 
 	if err := f.writeHeader(); err != nil {
