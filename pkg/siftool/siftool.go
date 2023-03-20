@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
@@ -20,7 +20,7 @@ type command struct {
 }
 
 // initApp initializes the siftool app.
-func (c *command) initApp(cmd *cobra.Command, args []string) error {
+func (c *command) initApp(cmd *cobra.Command, _ []string) error {
 	app, err := siftool.New(
 		siftool.OptAppOutput(cmd.OutOrStdout()),
 		siftool.OptAppError(cmd.ErrOrStderr()),
