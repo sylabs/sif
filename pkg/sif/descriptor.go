@@ -311,7 +311,7 @@ func (d Descriptor) OCIBlobMediaType() (string, error) {
 		return "unknown", fmt.Errorf("%w", err)
 	}
 
-	if str := fmt.Sprintf("%s", bytes.TrimRight(o.MediaType[:], "\x00")); str != "" {
+	if str := string(bytes.TrimRight(o.MediaType[:], "\x00")); str != "" {
 		return str, nil
 	}
 

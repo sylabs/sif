@@ -48,6 +48,7 @@ func getEntity() (*openpgp.Entity, error) {
 	return el[0], nil
 }
 
+//nolint:maintidx
 func generateImages() error {
 	ed25519, err := getSigner("ed25519-private.pem", crypto.Hash(0))
 	if err != nil {
