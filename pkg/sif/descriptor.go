@@ -303,19 +303,19 @@ func (d Descriptor) SBOMMetadata() (SBOMFormat, error) {
 // OCIBlobMediaType returns the media for a OCI blob object.
 func (d Descriptor) OCIBlobMediaType() (string, error) {
 	if got, want := d.raw.DataType, DataOCIBlob; got != want {
-		return "unknown", &unexpectedDataTypeError{got, []DataType{want}}
+		return "", &unexpectedDataTypeError{got, []DataType{want}}
 	}
 
 	var o ociBlob
 	if err := d.raw.getExtra(binaryUnmarshaler{&o}); err != nil {
-		return "unknown", fmt.Errorf("%w", err)
+		return "", fmt.Errorf("%w", err)
 	}
 
 	if str := string(bytes.TrimRight(o.MediaType[:], "\x00")); str != "" {
 		return str, nil
 	}
 
-	return "unknown", nil
+	return "", nil
 }
 
 // GetData returns the data object associated with descriptor d.

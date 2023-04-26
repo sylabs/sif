@@ -186,14 +186,14 @@ func TestNewDescriptorInput(t *testing.T) {
 			},
 		},
 		{
-			name: "OptOCIMediaType",
+			name: "OptOCIMetadata",
 			t:    DataOCIBlob,
 			opts: []DescriptorInputOpt{
 				OptOCIBlobMetadata("application/vnd.oci.image.config.v1+json"),
 			},
 		},
 		{
-			name: "OptOCIMediaTypeUnexpectedDataType",
+			name: "OptOCIMetadataUnexpectedDataType",
 			t:    DataGeneric,
 			opts: []DescriptorInputOpt{
 				OptOCIBlobMetadata("application/vnd.oci.image.config.v1+json"),

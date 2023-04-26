@@ -117,8 +117,8 @@ func TestApp_Header(t *testing.T) {
 			path: filepath.Join(corpus, "one-object-sbom.sif"),
 		},
 		{
-			name: "OneObjectOCIBlobConfig",
-			path: filepath.Join(corpus, "one-object-oci-blob-config.sif"),
+			name: "OneObjectOCIBlob",
+			path: filepath.Join(corpus, "one-object-oci-blob.sif"),
 		},
 		{
 			name: "OneGroup",
@@ -223,8 +223,8 @@ func TestApp_List(t *testing.T) {
 			path: filepath.Join(corpus, "one-object-sbom.sif"),
 		},
 		{
-			name: "OneObjectOCIBlobConfig",
-			path: filepath.Join(corpus, "one-object-oci-blob-config.sif"),
+			name: "OneObjectOCIBlob",
+			path: filepath.Join(corpus, "one-object-oci-blob.sif"),
 		},
 		{
 			name: "OneGroup",
@@ -321,8 +321,8 @@ func TestApp_Info(t *testing.T) {
 			id:   1,
 		},
 		{
-			name: "OCIBlobConfig",
-			path: filepath.Join(corpus, "one-object-oci-blob-config.sif"),
+			name: "OCIBlob",
+			path: filepath.Join(corpus, "one-object-oci-blob.sif"),
 			id:   1,
 		},
 		{

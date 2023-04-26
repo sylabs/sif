@@ -253,6 +253,8 @@ func OptSBOMMetadata(f SBOMFormat) DescriptorInputOpt {
 	}
 }
 
+var errMetadataTooLarge = errors.New("metadata value too large")
+
 // OptOCIBlobMetadata sets metadata for a OCIBlog data object.
 //
 // If this option is applied to a data object with an incompatible type, an error is returned.
@@ -263,6 +265,11 @@ func OptOCIBlobMetadata(mediaType string) DescriptorInputOpt {
 		}
 
 		o := ociBlob{}
+
+		if len(mediaType) > len(o.MediaType) {
+			return errMetadataTooLarge
+		}
+
 		copy(o.MediaType[:], mediaType)
 
 		opts.md = binaryMarshaler{o}

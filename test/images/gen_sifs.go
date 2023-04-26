@@ -90,7 +90,7 @@ func generateImages() error {
 		)
 	}
 
-	objectOCIBlobConfig := func() (sif.DescriptorInput, error) {
+	objectOCIBlobMetadata := func() (sif.DescriptorInput, error) {
 		b, err := os.ReadFile(filepath.Join("..", "input", "oci-config.json"))
 		if err != nil {
 			return sif.DescriptorInput{}, err
@@ -183,9 +183,9 @@ func generateImages() error {
 			},
 		},
 		{
-			path: "one-object-oci-blob-config.sif",
+			path: "one-object-oci-blob.sif",
 			diFns: []func() (sif.DescriptorInput, error){
-				objectOCIBlobConfig,
+				objectOCIBlobMetadata,
 			},
 		},
 

@@ -129,6 +129,7 @@ func writeList(w io.Writer, f *sif.FileImage) error {
 			if err == nil {
 				fmt.Fprintf(w, "|%s (%s)\n", dt, f)
 			}
+
 		case sif.DataOCIBlob:
 			t, err := d.OCIBlobMediaType()
 			if err == nil {
