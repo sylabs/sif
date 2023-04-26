@@ -253,6 +253,23 @@ func OptSBOMMetadata(f SBOMFormat) DescriptorInputOpt {
 	}
 }
 
+// OptOCIBlobMetadata sets metadata for a OCIBlog data object.
+//
+// If this option is applied to a data object with an incompatible type, an error is returned.
+func OptOCIBlobMetadata(mediaType string) DescriptorInputOpt {
+	return func(t DataType, opts *descriptorOpts) error {
+		if got, want := t, DataOCIBlob; got != want {
+			return &unexpectedDataTypeError{got, []DataType{want}}
+		}
+
+		o := ociBlob{}
+		copy(o.MediaType[:], mediaType)
+
+		opts.md = binaryMarshaler{o}
+		return nil
+	}
+}
+
 // DescriptorInput describes a new data object.
 type DescriptorInput struct {
 	dt   DataType
