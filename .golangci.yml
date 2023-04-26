@@ -31,7 +31,6 @@ linters:
     - grouper
     - ineffassign
     - interfacebloat
-    - ireturn
     - lll
     - maintidx
     - misspell
