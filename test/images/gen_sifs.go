@@ -89,6 +89,17 @@ func generateImages() error {
 		)
 	}
 
+	objectOCIBlobConfig := func() (sif.DescriptorInput, error) {
+		b, err := os.ReadFile(filepath.Join("..", "input", "oci-config.json"))
+		if err != nil {
+			return sif.DescriptorInput{}, err
+		}
+
+		return sif.NewDescriptorInput(sif.DataOCIBlob, bytes.NewReader(b),
+			sif.OptOCIBlobMetadata("application/vnd.oci.image.config.v1+json"),
+		)
+	}
+
 	partSystem := func() (sif.DescriptorInput, error) {
 		return sif.NewDescriptorInput(sif.DataPartition,
 			bytes.NewReader([]byte{0xfa, 0xce, 0xfe, 0xed}),
@@ -168,6 +179,12 @@ func generateImages() error {
 			path: "one-object-sbom.sif",
 			diFns: []func() (sif.DescriptorInput, error){
 				objectSBOM,
+			},
+		},
+		{
+			path: "one-object-oci-blob-config.sif",
+			diFns: []func() (sif.DescriptorInput, error){
+				objectOCIBlobConfig,
 			},
 		},
 
