@@ -9,38 +9,40 @@ siftool add image.sif rootfs.squashfs --datatype 4 --parttype 1 --partfs 1 ----p
 siftool add image.sif signature.bin -datatype 5 --signentity 433FE984155206BD962725E20E8713472A879943 --signhash 1
 
 Flags:
-      --alignment int       set alignment [default: 4096 with -datatype 4-Partition, 0 otherwise]
-      --datatype int        the type of data to add
-                            [NEEDED, no default]:
-                              1-Deffile,       2-EnvVar,        3-Labels,
-                              4-Partition,     5-Signature,     6-GenericJSON,
-                              7-Generic,       8-CryptoMessage, 9-SBOM
-      --filename string     set logical filename/handle [default: input filename]
-      --groupid uint32      set groupid [default: 0]
-  -h, --help                help for add
-      --link uint32         set link pointer [default: 0]
-      --partarch int32      the main architecture used (with -datatype 4-Partition)
-                            [NEEDED, no default]:
-                              1-386,       2-amd64,     3-arm,
-                              4-arm64,     5-ppc64,     6-ppc64le,
-                              7-mips,      8-mipsle,    9-mips64,
-                              10-mips64le, 11-s390x,    12-riscv64
-      --partfs int32        the filesystem used (with -datatype 4-Partition)
-                            [NEEDED, no default]:
-                              1-Squash,    2-Ext3,      3-ImmuObj,
-                              4-Raw
-      --parttype int32      the type of partition (with -datatype 4-Partition)
-                            [NEEDED, no default]:
-                              1-System,    2-PrimSys,   3-Data,
-                              4-Overlay
-      --sbomformat string   the SBOM format (with -datatype 9-sbom):
-                              cyclonedx-json, cyclonedx-xml,  github-json,
-                              spdx-json,      spdx-rdf,       spdx-tag-value,
-                              spdx-yaml,      syft-json
-      --signentity string   the entity that signs (with -datatype 5-Signature)
-                            [NEEDED, no default]:
-                              example: 433FE984155206BD962725E20E8713472A879943
-      --signhash int32      the signature hash used (with -datatype 5-Signature)
-                            [NEEDED, no default]:
-                              1-SHA256,      2-SHA384,      3-SHA512,
-                              4-BLAKE2s_256, 5-BLAKE2b_256
+      --alignment int         set alignment [default: 4096 with -datatype 4-Partition, 0 otherwise]
+      --datatype int          the type of data to add
+                              [NEEDED, no default]:
+                                1-Deffile,       2-EnvVar,        3-Labels,
+                                4-Partition,     5-Signature,     6-GenericJSON,
+                                7-Generic,       8-CryptoMessage, 9-SBOM
+                                10-OCI.Blob
+      --filename string       set logical filename/handle [default: input filename]
+      --groupid uint32        set groupid [default: 0]
+  -h, --help                  help for add
+      --link uint32           set link pointer [default: 0]
+      --ocimediatype string   the OCI blob media type (with -datatype 10-OCI.Blob)
+      --partarch int32        the main architecture used (with -datatype 4-Partition)
+                              [NEEDED, no default]:
+                                1-386,       2-amd64,     3-arm,
+                                4-arm64,     5-ppc64,     6-ppc64le,
+                                7-mips,      8-mipsle,    9-mips64,
+                                10-mips64le, 11-s390x,    12-riscv64
+      --partfs int32          the filesystem used (with -datatype 4-Partition)
+                              [NEEDED, no default]:
+                                1-Squash,    2-Ext3,      3-ImmuObj,
+                                4-Raw
+      --parttype int32        the type of partition (with -datatype 4-Partition)
+                              [NEEDED, no default]:
+                                1-System,    2-PrimSys,   3-Data,
+                                4-Overlay
+      --sbomformat string     the SBOM format (with -datatype 9-sbom):
+                                cyclonedx-json, cyclonedx-xml,  github-json,
+                                spdx-json,      spdx-rdf,       spdx-tag-value,
+                                spdx-yaml,      syft-json
+      --signentity string     the entity that signs (with -datatype 5-Signature)
+                              [NEEDED, no default]:
+                                example: 433FE984155206BD962725E20E8713472A879943
+      --signhash int32        the signature hash used (with -datatype 5-Signature)
+                              [NEEDED, no default]:
+                                1-SHA256,      2-SHA384,      3-SHA512,
+                                4-BLAKE2s_256, 5-BLAKE2b_256

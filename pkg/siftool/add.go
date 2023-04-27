@@ -21,17 +21,18 @@ import (
 )
 
 var (
-	dataType   *int
-	partType   *int32
-	partFS     *int32
-	partArch   *int32
-	signHash   *int32
-	signEntity *string
-	sbomFormat *string
-	groupID    *uint32
-	linkID     *uint32
-	alignment  *int
-	name       *string
+	dataType         *int
+	partType         *int32
+	partFS           *int32
+	partArch         *int32
+	signHash         *int32
+	signEntity       *string
+	sbomFormat       *string
+	ociBlobMediaType *string
+	groupID          *uint32
+	linkID           *uint32
+	alignment        *int
+	name             *string
 )
 
 // getAddExamples returns add command examples based on rootCmd.
@@ -53,7 +54,8 @@ func addFlags(fs *pflag.FlagSet) {
 [NEEDED, no default]:
   1-Deffile,       2-EnvVar,        3-Labels,
   4-Partition,     5-Signature,     6-GenericJSON,
-  7-Generic,       8-CryptoMessage, 9-SBOM`)
+  7-Generic,       8-CryptoMessage, 9-SBOM
+  10-OCI.Blob`)
 	partType = fs.Int32("parttype", 0, `the type of partition (with -datatype 4-Partition)
 [NEEDED, no default]:
   1-System,    2-PrimSys,   3-Data,
@@ -79,6 +81,7 @@ func addFlags(fs *pflag.FlagSet) {
   cyclonedx-json, cyclonedx-xml,  github-json,
   spdx-json,      spdx-rdf,       spdx-tag-value,
   spdx-yaml,      syft-json`)
+	ociBlobMediaType = fs.String("ocimediatype", "", `the OCI blob media type (with -datatype 10-OCI.Blob)`)
 	groupID = fs.Uint32("groupid", 0, "set groupid [default: 0]")
 	linkID = fs.Uint32("link", 0, "set link pointer [default: 0]")
 	alignment = fs.Int("alignment", 0, "set alignment [default: 4096 with -datatype 4-Partition, 0 otherwise]")
@@ -108,6 +111,8 @@ func getDataType() (sif.DataType, error) {
 		return sif.DataCryptoMessage, nil
 	case 9:
 		return sif.DataSBOM, nil
+	case 10:
+		return sif.DataOCIBlob, nil
 	default:
 		return 0, errDataTypeRequired
 	}
@@ -192,6 +197,7 @@ var (
 	errPartitionArgs            = errors.New("with partition datatype, -partfs, -parttype and -partarch must be passed")
 	errInvalidFingerprintLength = errors.New("invalid signing entity fingerprint length")
 	errSBOMArgs                 = errors.New("with SBOM datatype, -sbomformat must be passed")
+	errOCIBlobTypeArgs          = errors.New("with OCI Blob datatype, -ocimediatype must be passed")
 )
 
 func getOptions(dt sif.DataType, fs *pflag.FlagSet) ([]sif.DescriptorInputOpt, error) {
@@ -255,6 +261,13 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet) ([]sif.DescriptorInputOpt, e
 		}
 
 		opts = append(opts, sif.OptSBOMMetadata(f))
+
+	case sif.DataOCIBlob:
+		if *ociBlobMediaType == "" {
+			return nil, errOCIBlobTypeArgs
+		}
+
+		opts = append(opts, sif.OptOCIBlobMetadata(*ociBlobMediaType))
 	}
 
 	return opts, nil
