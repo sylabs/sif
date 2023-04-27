@@ -185,6 +185,21 @@ func TestNewDescriptorInput(t *testing.T) {
 				OptSBOMMetadata(SBOMFormatCycloneDXJSON),
 			},
 		},
+		{
+			name: "OptOCIMetadata",
+			t:    DataOCIBlob,
+			opts: []DescriptorInputOpt{
+				OptOCIBlobMetadata("application/vnd.oci.image.config.v1+json"),
+			},
+		},
+		{
+			name: "OptOCIMetadataUnexpectedDataType",
+			t:    DataGeneric,
+			opts: []DescriptorInputOpt{
+				OptOCIBlobMetadata("application/vnd.oci.image.config.v1+json"),
+			},
+			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

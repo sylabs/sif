@@ -109,7 +109,7 @@ func (d *sifImageDestination) PutBlob(_ context.Context, stream io.Reader, input
 
 	// If inputInfo.MediaType is known, include it in metadata.
 	if mt := inputInfo.MediaType; mt != "" {
-		opts = append(opts, sif.OptMetadata(extra{mt}))
+		opts = append(opts, sif.OptOCIBlobMetadata(mt))
 	}
 
 	// inputInfo.Digest isn't necessarily known, so calculate from the stream.
@@ -118,7 +118,7 @@ func (d *sifImageDestination) PutBlob(_ context.Context, stream io.Reader, input
 	// inputInfo.Size isn't necessarily known, so keep track of the size of the stream.
 	acc := &accumulator{}
 
-	di, err := sif.NewDescriptorInput(sif.DataGeneric, io.TeeReader(stream, io.MultiWriter(digester.Hash(), acc)), opts...)
+	di, err := sif.NewDescriptorInput(sif.DataOCIBlob, io.TeeReader(stream, io.MultiWriter(digester.Hash(), acc)), opts...)
 	if err != nil {
 		return types.BlobInfo{}, err
 	}
@@ -163,10 +163,10 @@ func (d *sifImageDestination) PutManifest(_ context.Context, b []byte, _ *digest
 	var opts []sif.DescriptorInputOpt
 
 	if mt := manifest.GuessMIMEType(b); mt != "" {
-		opts = append(opts, sif.OptMetadata(extra{mt}))
+		opts = append(opts, sif.OptOCIBlobMetadata(mt))
 	}
 
-	di, err := sif.NewDescriptorInput(sif.DataGeneric, bytes.NewReader(b), opts...)
+	di, err := sif.NewDescriptorInput(sif.DataOCIBlob, bytes.NewReader(b), opts...)
 	if err != nil {
 		return err
 	}

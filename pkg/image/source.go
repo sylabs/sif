@@ -6,9 +6,7 @@
 package image
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 
@@ -18,25 +16,13 @@ import (
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
 
-type extra struct {
-	MimeType string `json:"MimeType"`
-}
-
-func (e extra) MarshalBinary() ([]byte, error) {
-	return json.Marshal(e)
-}
-
-func (e *extra) UnmarshalBinary(b []byte) error {
-	return json.Unmarshal(bytes.TrimRight(b, "\x00"), e)
-}
-
 // getMimeType returns the mimeType associated with descriptor d.
 func getMimeType(d sif.Descriptor) string {
-	var e extra
-	if err := d.GetMetadata(&e); err != nil {
+	mediaType, err := d.OCIBlobMetadata()
+	if err != nil {
 		return ""
 	}
-	return e.MimeType
+	return mediaType
 }
 
 func withMimeType(want string) sif.DescriptorSelectorFunc {

@@ -130,6 +130,12 @@ func writeList(w io.Writer, f *sif.FileImage) error {
 				fmt.Fprintf(w, "|%s (%s)\n", dt, f)
 			}
 
+		case sif.DataOCIBlob:
+			t, err := d.OCIBlobMetadata()
+			if err == nil {
+				fmt.Fprintf(w, "|%s (%s)\n", dt, t)
+			}
+
 		default:
 			fmt.Fprintf(w, "|%s\n", dt)
 		}
@@ -225,6 +231,14 @@ func writeInfo(w io.Writer, v sif.Descriptor) error {
 		}
 
 		fmt.Fprintf(tw, "\tFormat:\t%v\n", f)
+
+	case sif.DataOCIBlob:
+		t, err := v.OCIBlobMetadata()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(tw, "\tMedia Type:\t%s\n", t)
 	}
 
 	return tw.Flush()

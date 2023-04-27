@@ -393,6 +393,54 @@ func TestDescriptor_SBOMMetadata(t *testing.T) {
 	}
 }
 
+func TestDescriptor_OCIBlobMetadata(t *testing.T) {
+	o := ociBlob{}
+	copy(o.MediaType[:], "application/vnd.oci.image.config.v1+json")
+	rd := rawDescriptor{
+		DataType: DataOCIBlob,
+	}
+	if err := rd.setExtra(binaryMarshaler{o}); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name       string
+		rd         rawDescriptor
+		wantFormat string
+		wantErr    error
+	}{
+		{
+			name: "UnexpectedDataType",
+			rd: rawDescriptor{
+				DataType: DataGeneric,
+			},
+			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
+		},
+		{
+			name:       "OK",
+			rd:         rd,
+			wantFormat: "application/vnd.oci.image.config.v1+json",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := Descriptor{raw: tt.rd}
+
+			f, err := d.OCIBlobMetadata()
+
+			if got, want := err, tt.wantErr; !errors.Is(got, want) {
+				t.Fatalf("got error %v, want %v", got, want)
+			}
+
+			if err == nil {
+				if got, want := f, tt.wantFormat; got != want {
+					t.Fatalf("got format %v, want %v", got, want)
+				}
+			}
+		})
+	}
+}
+
 func TestDescriptor_GetIntegrityReader(t *testing.T) {
 	rd := rawDescriptor{
 		DataType:   DataDeffile,

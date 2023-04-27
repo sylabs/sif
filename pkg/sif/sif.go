@@ -113,10 +113,11 @@ const (
 const CurrentVersion = version01
 
 const (
-	descrGroupMask  = 0xf0000000 // groups start at that offset
-	descrEntityLen  = 256        // len("Joe Bloe <jbloe@gmail.com>...")
-	descrNameLen    = 128        // descriptor name (string identifier)
-	descrMaxPrivLen = 384        // size reserved for descriptor specific data
+	descrGroupMask       = 0xf0000000 // groups start at that offset
+	descrEntityLen       = 256        // len("Joe Bloe <jbloe@gmail.com>...")
+	descrNameLen         = 128        // descriptor name (string identifier)
+	descrMaxPrivLen      = 384        // size reserved for descriptor specific data
+	descrOCIMediaTypeLen = 256        // oci media-type size specification
 )
 
 // DataType represents the different SIF data object types stored in the image.
@@ -133,6 +134,7 @@ const (
 	DataGeneric                                // generic / raw data
 	DataCryptoMessage                          // cryptographic message data object
 	DataSBOM                                   // software bill of materials
+	DataOCIBlob                                // oci blob data object
 )
 
 // String returns a human-readable representation of t.
@@ -156,6 +158,8 @@ func (t DataType) String() string {
 		return "Cryptographic Message"
 	case DataSBOM:
 		return "SBOM"
+	case DataOCIBlob:
+		return "OCI.Blob"
 	}
 	return "Unknown"
 }
