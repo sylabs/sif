@@ -300,8 +300,8 @@ func (d Descriptor) SBOMMetadata() (SBOMFormat, error) {
 	return s.Format, nil
 }
 
-// OCIBlobMediaType returns the media for a OCI blob object.
-func (d Descriptor) OCIBlobMediaType() (string, error) {
+// OCIBlobMetadata returns the media for a OCI blob object.
+func (d Descriptor) OCIBlobMetadata() (string, error) {
 	if got, want := d.raw.DataType, DataOCIBlob; got != want {
 		return "", &unexpectedDataTypeError{got, []DataType{want}}
 	}
@@ -311,11 +311,7 @@ func (d Descriptor) OCIBlobMediaType() (string, error) {
 		return "", fmt.Errorf("%w", err)
 	}
 
-	if str := string(bytes.TrimRight(o.MediaType[:], "\x00")); str != "" {
-		return str, nil
-	}
-
-	return "", nil
+	return string(bytes.TrimRight(o.MediaType[:], "\x00")), nil
 }
 
 // GetData returns the data object associated with descriptor d.

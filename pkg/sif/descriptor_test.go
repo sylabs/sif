@@ -426,7 +426,7 @@ func TestDescriptor_OCIBlobMetadata(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := Descriptor{raw: tt.rd}
 
-			f, err := d.OCIBlobMediaType()
+			f, err := d.OCIBlobMetadata()
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Fatalf("got error %v, want %v", got, want)

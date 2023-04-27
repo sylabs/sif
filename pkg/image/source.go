@@ -18,7 +18,7 @@ import (
 
 // getMimeType returns the mimeType associated with descriptor d.
 func getMimeType(d sif.Descriptor) string {
-	mediaType, err := d.OCIBlobMediaType()
+	mediaType, err := d.OCIBlobMetadata()
 	if err != nil {
 		return ""
 	}
