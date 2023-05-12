@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/cloudflare/circl v1.1.0 // indirect
+	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-containerregistry v0.14.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
