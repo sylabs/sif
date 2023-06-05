@@ -107,6 +107,8 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 // corruptPayloadType corrupts the payload type of e and re-signs the envelope. The result is a
 // cryptographically valid envelope with an unexpected payload types.
 func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsse.Envelope) {
+	t.Helper()
+
 	body, err := e.DecodeB64Payload()
 	if err != nil {
 		t.Fatal(err)
@@ -123,6 +125,8 @@ func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsse.Envelope) {
 // corruptPayload corrupts the payload in e. The result is that the signature(s) in e do not match
 // the payload.
 func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
+	t.Helper()
+
 	body, err := e.DecodeB64Payload()
 	if err != nil {
 		t.Fatal(err)
@@ -134,6 +138,8 @@ func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
 // corruptSignatures corrupts the signature(s) in e. The result is that the signature(s) in e do
 // not match the payload.
 func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
+	t.Helper()
+
 	for i, sig := range e.Signatures {
 		b, err := base64.StdEncoding.DecodeString(sig.Sig)
 		if err != nil {

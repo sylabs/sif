@@ -1,4 +1,4 @@
-// Copyright (c) 2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2021-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -271,6 +271,7 @@ func TestFileImage_WithDescriptors(t *testing.T) {
 		{
 			name: "ReturnTrue",
 			fn: func(t *testing.T) func(d Descriptor) bool {
+				t.Helper()
 				return func(d Descriptor) bool {
 					if id := d.ID(); id > 1 {
 						t.Errorf("unexpected ID: %v", id)
@@ -282,6 +283,7 @@ func TestFileImage_WithDescriptors(t *testing.T) {
 		{
 			name: "ReturnFalse",
 			fn: func(t *testing.T) func(d Descriptor) bool {
+				t.Helper()
 				return func(d Descriptor) bool {
 					if id := d.ID(); id > 2 {
 						t.Errorf("unexpected ID: %v", id)
