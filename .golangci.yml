@@ -7,7 +7,6 @@ linters:
     - containedctx
     - contextcheck
     - decorder
-    - depguard
     - dogsled
     - dupl
     - dupword
@@ -16,6 +15,7 @@ linters:
     - errname
     - errorlint
     - exportloopref
+    - forcetypeassert
     - gochecknoinits
     - gocritic
     - godot
@@ -34,6 +34,7 @@ linters:
     - ireturn
     - lll
     - maintidx
+    - mirror
     - misspell
     - nilnil
     - nolintlint
@@ -43,6 +44,7 @@ linters:
     - revive
     - staticcheck
     - tenv
+    - thelper
     - typecheck
     - unconvert
     - unparam
