@@ -101,6 +101,15 @@ func generateImages() error {
 		)
 	}
 
+	objectOCIImageIndex := func() (sif.DescriptorInput, error) {
+		b, err := os.ReadFile(filepath.Join("..", "input", "index.json"))
+		if err != nil {
+			return sif.DescriptorInput{}, err
+		}
+
+		return sif.NewDescriptorInput(sif.DataOCIImageIndex, bytes.NewReader(b))
+	}
+
 	partSystem := func() (sif.DescriptorInput, error) {
 		return sif.NewDescriptorInput(sif.DataPartition,
 			bytes.NewReader([]byte{0xfa, 0xce, 0xfe, 0xed}),
@@ -188,7 +197,12 @@ func generateImages() error {
 				objectOCIBlobMetadata,
 			},
 		},
-
+		{
+			path: "one-object-oci-image-index.sif",
+			diFns: []func() (sif.DescriptorInput, error){
+				objectOCIImageIndex,
+			},
+		},
 		// Images with two partitions in one group.
 		{
 			path: "one-group.sif",
