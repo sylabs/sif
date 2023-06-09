@@ -201,8 +201,8 @@ func TestNewDescriptorInput(t *testing.T) {
 			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
 		},
 		{
-			name: "OptOCIImageIndex",
-			t:    DataOCIImageIndex,
+			name: "OptOCIRootIndex",
+			t:    DataOCIRootIndex,
 		},
 	}
 	for _, tt := range tests {

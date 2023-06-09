@@ -121,8 +121,8 @@ func TestApp_Header(t *testing.T) {
 			path: filepath.Join(corpus, "one-object-oci-blob.sif"),
 		},
 		{
-			name: "OneObjectOCIImageIndex",
-			path: filepath.Join(corpus, "one-object-oci-image-index.sif"),
+			name: "OneObjectOCIRootIndex",
+			path: filepath.Join(corpus, "one-object-oci-root-index.sif"),
 		},
 		{
 			name: "OneGroup",
@@ -231,8 +231,8 @@ func TestApp_List(t *testing.T) {
 			path: filepath.Join(corpus, "one-object-oci-blob.sif"),
 		},
 		{
-			name: "OneObjectOCIImageIndex",
-			path: filepath.Join(corpus, "one-object-oci-image-index.sif"),
+			name: "OneObjectOCIRootIndex",
+			path: filepath.Join(corpus, "one-object-oci-root-index.sif"),
 		},
 		{
 			name: "OneGroup",
@@ -334,8 +334,8 @@ func TestApp_Info(t *testing.T) {
 			id:   1,
 		},
 		{
-			name: "OCIImageIndex",
-			path: filepath.Join(corpus, "one-object-oci-image-index.sif"),
+			name: "OCIRootIndex",
+			path: filepath.Join(corpus, "one-object-oci-root-index.sif"),
 			id:   1,
 		},
 		{
