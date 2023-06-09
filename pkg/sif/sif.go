@@ -135,6 +135,7 @@ const (
 	DataCryptoMessage                          // cryptographic message data object
 	DataSBOM                                   // software bill of materials
 	DataOCIBlob                                // oci blob data object
+	DataOCIRootIndex                           // root OCI index
 )
 
 // String returns a human-readable representation of t.
@@ -160,6 +161,8 @@ func (t DataType) String() string {
 		return "SBOM"
 	case DataOCIBlob:
 		return "OCI.Blob"
+	case DataOCIRootIndex:
+		return "OCI.RootIndex"
 	}
 	return "Unknown"
 }

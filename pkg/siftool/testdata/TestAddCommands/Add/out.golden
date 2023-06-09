@@ -15,7 +15,7 @@ Flags:
                                 1-Deffile,       2-EnvVar,        3-Labels,
                                 4-Partition,     5-Signature,     6-GenericJSON,
                                 7-Generic,       8-CryptoMessage, 9-SBOM
-                                10-OCI.Blob
+                                10-OCI.Blob      11-OCI.RootIndex
       --filename string       set logical filename/handle [default: input filename]
       --groupid uint32        set groupid [default: 0]
   -h, --help                  help for add
