@@ -134,6 +134,7 @@ const (
 	DataGeneric                                // generic / raw data
 	DataCryptoMessage                          // cryptographic message data object
 	DataSBOM                                   // software bill of materials
+	DataOCIRootIndex                           // root OCI index
 	DataOCIBlob                                // oci blob data object
 )
 
@@ -158,6 +159,8 @@ func (t DataType) String() string {
 		return "Cryptographic Message"
 	case DataSBOM:
 		return "SBOM"
+	case DataOCIRootIndex:
+		return "OCI.RootIndex"
 	case DataOCIBlob:
 		return "OCI.Blob"
 	}

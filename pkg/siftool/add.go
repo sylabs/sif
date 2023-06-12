@@ -56,7 +56,7 @@ func addFlags(fs *pflag.FlagSet) {
   1-Deffile,       2-EnvVar,        3-Labels,
   4-Partition,     5-Signature,     6-GenericJSON,
   7-Generic,       8-CryptoMessage, 9-SBOM
-  10-OCI.Blob`)
+  10-OCI.RootIndex 11-OCI.Blob`)
 	partType = fs.Int32("parttype", 0, `the type of partition (with --datatype 4-Partition)
 [NEEDED, no default]:
   1-System,    2-PrimSys,   3-Data,
@@ -112,6 +112,8 @@ func getDataType() (sif.DataType, error) {
 	case 9:
 		return sif.DataSBOM, nil
 	case 10:
+		return sif.DataOCIRootIndex, nil
+	case 11:
 		return sif.DataOCIBlob, nil
 	default:
 		return 0, errDataTypeRequired

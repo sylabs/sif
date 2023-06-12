@@ -90,6 +90,15 @@ func generateImages() error {
 		)
 	}
 
+	objectOCIRootIndex := func() (sif.DescriptorInput, error) {
+		b, err := os.ReadFile(filepath.Join("..", "input", "index.json"))
+		if err != nil {
+			return sif.DescriptorInput{}, err
+		}
+
+		return sif.NewDescriptorInput(sif.DataOCIRootIndex, bytes.NewReader(b))
+	}
+
 	objectOCIBlobMetadata := func() (sif.DescriptorInput, error) {
 		b, err := os.ReadFile(filepath.Join("..", "input", "oci-config.json"))
 		if err != nil {
@@ -178,6 +187,12 @@ func generateImages() error {
 			path: "one-object-sbom.sif",
 			diFns: []func() (sif.DescriptorInput, error){
 				objectSBOM,
+			},
+		},
+		{
+			path: "one-object-oci-root-index.sif",
+			diFns: []func() (sif.DescriptorInput, error){
+				objectOCIRootIndex,
 			},
 		},
 		{

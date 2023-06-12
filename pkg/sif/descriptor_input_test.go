@@ -200,6 +200,10 @@ func TestNewDescriptorInput(t *testing.T) {
 			},
 			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
 		},
+		{
+			name: "OptOCIRootIndex",
+			t:    DataOCIRootIndex,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
