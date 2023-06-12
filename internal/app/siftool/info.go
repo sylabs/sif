@@ -225,6 +225,14 @@ func writeInfo(w io.Writer, v sif.Descriptor) error {
 		}
 
 		fmt.Fprintf(tw, "\tFormat:\t%v\n", f)
+
+	case sif.DataOCIBlob:
+		t, err := v.OCIBlobMetadata()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(tw, "\tDigest:\t%s\n", t)
 	}
 
 	return tw.Flush()
