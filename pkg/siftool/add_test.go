@@ -6,7 +6,6 @@
 package siftool
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -91,17 +90,8 @@ func Test_getDigestFromInputFile(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			cursorPos, err := f.Seek(0, io.SeekCurrent)
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if cursorPos != 0 {
-				t.Errorf("file cursor not reset to 0 location")
-			}
-
 			if got, want := digest, tt.wantDigest; got != want {
-				t.Errorf("got: %s, want: %s", got, want)
+				t.Errorf("digest got: %s, wanted: %s", got, want)
 			}
 		})
 	}

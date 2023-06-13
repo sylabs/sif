@@ -55,7 +55,7 @@ func addFlags(fs *pflag.FlagSet) {
 [NEEDED, no default]:
   1-Deffile,        2-EnvVar,        3-Labels,
   4-Partition,      5-Signature,     6-GenericJSON,
-  7-Generic,        8-CryptoMessage, 9-SBOM
+  7-Generic,        8-CryptoMessage, 9-SBOM,
   10-OCI.RootIndex, 11-OCI.Blob`)
 	partType = fs.Int32("parttype", 0, `the type of partition (with --datatype 4-Partition)
 [NEEDED, no default]:
@@ -201,7 +201,7 @@ var (
 	errSBOMArgs                 = errors.New("with SBOM datatype, --sbomformat must be passed")
 )
 
-func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.DescriptorInputOpt, error) {
+func getOptions(dt sif.DataType, fs *pflag.FlagSet, r io.Reader) ([]sif.DescriptorInputOpt, error) {
 	var opts []sif.DescriptorInputOpt
 
 	if *groupID == 0 {
@@ -264,7 +264,7 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.Descript
 		opts = append(opts, sif.OptSBOMMetadata(f))
 
 	case sif.DataOCIBlob, sif.DataOCIRootIndex:
-		digest, err := getDigestFromInputFile(fi)
+		digest, err := getDigestFromInputFile(r)
 		if err != nil {
 			return nil, err
 		}
@@ -275,15 +275,10 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.Descript
 	return opts, nil
 }
 
-func getDigestFromInputFile(fi *os.File) (string, error) {
+func getDigestFromInputFile(r io.Reader) (string, error) {
 	hash := sha256.New()
-	_, err := io.Copy(hash, fi)
+	_, err := io.Copy(hash, r)
 	if err != nil {
-		return "", err
-	}
-
-	// Reset the file cursor
-	if _, err := fi.Seek(0, io.SeekStart); err != nil {
 		return "", err
 	}
 
@@ -316,6 +311,11 @@ func (c *command) getAdd() *cobra.Command {
 
 		opts, err := getOptions(dt, cmd.Flags(), f)
 		if err != nil {
+			return err
+		}
+
+		// Reset the file cursor
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 
