@@ -262,24 +262,32 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.Descript
 		}
 
 		opts = append(opts, sif.OptSBOMMetadata(f))
+
 	case sif.DataOCIBlob, sif.DataOCIRootIndex:
-		hash := sha256.New()
-		_, err := io.Copy(hash, fi)
+		digest, err := getDigestFromInputFile(fi)
 		if err != nil {
 			return nil, err
 		}
 
-		digest := hex.EncodeToString(hash.Sum(nil))
-
-		opts = append(opts, sif.OptOCIBlobMetadata(fmt.Sprintf("sha256:%s", digest)))
-
-		// Reset the file cursor
-		if _, err := fi.Seek(0, io.SeekStart); err != nil {
-			return nil, err
-		}
+		opts = append(opts, sif.OptOCIBlobMetadata(digest))
 	}
 
 	return opts, nil
+}
+
+func getDigestFromInputFile(fi *os.File) (string, error) {
+	hash := sha256.New()
+	_, err := io.Copy(hash, fi)
+	if err != nil {
+		return "", err
+	}
+
+	// Reset the file cursor
+	if _, err := fi.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("sha256:%s", hex.EncodeToString(hash.Sum(nil))), nil
 }
 
 // getAdd returns a command that adds a data object to a SIF.

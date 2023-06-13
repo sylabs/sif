@@ -300,7 +300,7 @@ func (d Descriptor) SBOMMetadata() (SBOMFormat, error) {
 	return s.Format, nil
 }
 
-// OCIBlobMetadata returns the media for a OCI blob object.
+// OCIBlobMetadata returns the digest for a OCI blob object.
 func (d Descriptor) OCIBlobMetadata() (string, error) {
 	if got := d.raw.DataType; got != DataOCIRootIndex && got != DataOCIBlob {
 		return "", &unexpectedDataTypeError{got, []DataType{DataOCIRootIndex, DataOCIBlob}}
