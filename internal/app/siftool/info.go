@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
 // Copyright (c) 2018, Divya Cote <divya.cote@gmail.com> All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
@@ -225,6 +225,14 @@ func writeInfo(w io.Writer, v sif.Descriptor) error {
 		}
 
 		fmt.Fprintf(tw, "\tFormat:\t%v\n", f)
+
+	case sif.DataOCIBlob, sif.DataOCIRootIndex:
+		t, err := v.OCIBlobMetadata()
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(tw, "\tDigest:\t%s\n", t)
 	}
 
 	return tw.Flush()
