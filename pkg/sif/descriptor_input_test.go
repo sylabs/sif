@@ -198,7 +198,7 @@ func TestNewDescriptorInput(t *testing.T) {
 			opts: []DescriptorInputOpt{
 				OptOCIBlobMetadata("sha256:8a49fdb3b6a5ff2bd8ec6a86c05b2922a0f7454579ecc07637e94dfd1d0639b6"),
 			},
-			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
+			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob, DataOCIRootIndex}},
 		},
 		{
 			name: "OptOCIRootIndex",

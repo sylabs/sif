@@ -414,7 +414,7 @@ func TestDescriptor_OCIBlobMetadata(t *testing.T) {
 			rd: rawDescriptor{
 				DataType: DataGeneric,
 			},
-			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob}},
+			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob, DataOCIRootIndex}},
 		},
 		{
 			name:       "OK",

@@ -262,7 +262,7 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.Descript
 		}
 
 		opts = append(opts, sif.OptSBOMMetadata(f))
-	case sif.DataOCIBlob:
+	case sif.DataOCIBlob, sif.DataOCIRootIndex:
 		hash := sha256.New()
 		_, err := io.Copy(hash, fi)
 		if err != nil {
@@ -272,6 +272,11 @@ func getOptions(dt sif.DataType, fs *pflag.FlagSet, fi *os.File) ([]sif.Descript
 		digest := hex.EncodeToString(hash.Sum(nil))
 
 		opts = append(opts, sif.OptOCIBlobMetadata(fmt.Sprintf("sha256:%s", digest)))
+
+		// Reset the file cursor
+		if _, err := fi.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
 	}
 
 	return opts, nil

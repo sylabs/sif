@@ -260,8 +260,8 @@ var errDigestTooLarge = errors.New("digest value too large")
 // If this option is applied to a data object with an incompatible type, an error is returned.
 func OptOCIBlobMetadata(digest string) DescriptorInputOpt {
 	return func(t DataType, opts *descriptorOpts) error {
-		if got, want := t, DataOCIBlob; got != want {
-			return &unexpectedDataTypeError{got, []DataType{want}}
+		if t != DataOCIRootIndex && t != DataOCIBlob {
+			return &unexpectedDataTypeError{t, []DataType{DataOCIRootIndex, DataOCIBlob}}
 		}
 
 		o := ociBlob{}
