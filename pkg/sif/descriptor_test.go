@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"testing"
 
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/sebdah/goldie/v2"
 )
 
@@ -394,19 +395,17 @@ func TestDescriptor_SBOMMetadata(t *testing.T) {
 }
 
 func TestDescriptor_OCIBlobMetadata(t *testing.T) {
-	o := ociBlob{}
-	copy(o.Digest[:], "sha256:8a49fdb3b6a5ff2bd8ec6a86c05b2922a0f7454579ecc07637e94dfd1d0639b6")
 	rd := rawDescriptor{
 		DataType: DataOCIBlob,
 	}
-	if err := rd.setExtra(binaryMarshaler{o}); err != nil {
+	if err := rd.setExtra(newOCIBlobDigest()); err != nil {
 		t.Fatal(err)
 	}
 
 	tests := []struct {
 		name       string
 		rd         rawDescriptor
-		wantDigest string
+		wantDigest v1.Hash
 		wantErr    error
 	}{
 		{
@@ -417,25 +416,26 @@ func TestDescriptor_OCIBlobMetadata(t *testing.T) {
 			wantErr: &unexpectedDataTypeError{DataGeneric, []DataType{DataOCIBlob, DataOCIRootIndex}},
 		},
 		{
-			name:       "OK",
-			rd:         rd,
-			wantDigest: "sha256:8a49fdb3b6a5ff2bd8ec6a86c05b2922a0f7454579ecc07637e94dfd1d0639b6",
+			name: "OK",
+			rd:   rd,
+			wantDigest: v1.Hash{
+				Algorithm: "sha256",
+				Hex:       "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := Descriptor{raw: tt.rd}
 
-			f, err := d.OCIBlobMetadata()
+			h, err := d.OCIBlobDigest()
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Fatalf("got error %v, want %v", got, want)
 			}
 
-			if err == nil {
-				if got, want := f, tt.wantDigest; got != want {
-					t.Fatalf("got format %v, want %v", got, want)
-				}
+			if got, want := h, tt.wantDigest; got != want {
+				t.Fatalf("got digest %v, want %v", got, want)
 			}
 		})
 	}

@@ -12,11 +12,15 @@ import (
 	"crypto"
 	"encoding"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash"
 	"io"
 	"strings"
 	"time"
+
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
 // rawDescriptor represents an on-disk object descriptor.
@@ -69,7 +73,36 @@ type sbom struct {
 
 // ociBlob represents the OCI Blob data object descriptor.
 type ociBlob struct {
-	Digest [descrOCIDigestLen]byte
+	hasher hash.Hash // accumulates hash while writing blob.
+	digest v1.Hash
+}
+
+// newOCIBlobDigest returns a new ociBlob, that accumulates the digest of an OCI blob as it is
+// read. The caller should take care to ensure that the entire contents of the blob have been
+// written to the returned ociBlob prior to calling MarshalBinary.
+func newOCIBlobDigest() *ociBlob {
+	return &ociBlob{
+		hasher: crypto.SHA256.New(),
+		digest: v1.Hash{
+			Algorithm: "sha256",
+		},
+	}
+}
+
+// MarshalBinary encodes ob into binary format.
+func (ob *ociBlob) MarshalBinary() ([]byte, error) {
+	ob.digest.Hex = hex.EncodeToString(ob.hasher.Sum(nil))
+
+	return ob.digest.MarshalText()
+}
+
+// UnmarshalBinary decodes b into ob.
+func (ob *ociBlob) UnmarshalBinary(b []byte) error {
+	if before, _, ok := bytes.Cut(b, []byte{0x00}); ok {
+		b = before
+	}
+
+	return ob.digest.UnmarshalText(b)
 }
 
 // The binaryMarshaler type is an adapter that allows a type suitable for use with the
@@ -300,18 +333,19 @@ func (d Descriptor) SBOMMetadata() (SBOMFormat, error) {
 	return s.Format, nil
 }
 
-// OCIBlobMetadata returns the digest for a OCI blob object.
-func (d Descriptor) OCIBlobMetadata() (string, error) {
+// OCIBlobDigest returns the digest for a OCI blob object.
+func (d Descriptor) OCIBlobDigest() (v1.Hash, error) {
 	if got := d.raw.DataType; got != DataOCIRootIndex && got != DataOCIBlob {
-		return "", &unexpectedDataTypeError{got, []DataType{DataOCIRootIndex, DataOCIBlob}}
+		return v1.Hash{}, &unexpectedDataTypeError{got, []DataType{DataOCIRootIndex, DataOCIBlob}}
 	}
 
 	var o ociBlob
-	if err := d.raw.getExtra(binaryUnmarshaler{&o}); err != nil {
-		return "", fmt.Errorf("%w", err)
+
+	if err := d.raw.getExtra(&o); err != nil {
+		return v1.Hash{}, fmt.Errorf("%w", err)
 	}
 
-	return string(bytes.TrimRight(o.Digest[:], "\x00")), nil
+	return o.digest, nil
 }
 
 // GetData returns the data object associated with descriptor d.
