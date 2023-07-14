@@ -10,6 +10,7 @@ package sif
 import (
 	"bytes"
 	"crypto"
+	"crypto/sha256"
 	"encoding"
 	"encoding/binary"
 	"encoding/hex"
@@ -82,7 +83,7 @@ type ociBlob struct {
 // written to the returned ociBlob prior to calling MarshalBinary.
 func newOCIBlobDigest() *ociBlob {
 	return &ociBlob{
-		hasher: crypto.SHA256.New(),
+		hasher: sha256.New(),
 		digest: v1.Hash{
 			Algorithm: "sha256",
 		},
