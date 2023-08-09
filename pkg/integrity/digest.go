@@ -117,7 +117,7 @@ func (d digest) MarshalJSON() ([]byte, error) {
 func (d *digest) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("%w: %v", errDigestMalformed, err)
+		return fmt.Errorf("%w: %w", errDigestMalformed, err)
 	}
 
 	parts := strings.Split(s, ":")
@@ -129,7 +129,7 @@ func (d *digest) UnmarshalJSON(data []byte) error {
 
 	v, err := hex.DecodeString(value)
 	if err != nil {
-		return fmt.Errorf("%w: %v", errDigestMalformed, err)
+		return fmt.Errorf("%w: %w", errDigestMalformed, err)
 	}
 
 	for h, n := range supportedDigestAlgorithms {
