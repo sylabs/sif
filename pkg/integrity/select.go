@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -68,7 +68,6 @@ func (e *SignatureNotFoundError) Error() string {
 // Is compares e against target. If target is a SignatureNotFoundError and matches e or target has
 // a zero value ID, true is returned.
 func (e *SignatureNotFoundError) Is(target error) bool {
-	//nolint:errorlint // don't compare wrapped errors in Is()
 	t, ok := target.(*SignatureNotFoundError)
 	if !ok {
 		return false
