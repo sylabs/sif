@@ -49,6 +49,7 @@ func makeTestSIF(t *testing.T, withDataObject bool) string {
 	return tf.Name()
 }
 
+//nolint:unparam
 func runCommand(t *testing.T, cmd *cobra.Command, args []string, wantErr error) {
 	t.Helper()
 
@@ -116,11 +117,6 @@ func TestAddCommands(t *testing.T) {
 		{
 			name: "SetPrim",
 			args: []string{"help", "setprim"},
-		},
-		{
-			name: "Mount",
-			opts: []CommandOpt{OptWithExperimental(true)},
-			args: []string{"help", "mount"},
 		},
 	}
 	for _, tt := range tests {
