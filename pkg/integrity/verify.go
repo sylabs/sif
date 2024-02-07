@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -14,7 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
@@ -572,9 +572,7 @@ func (v *Verifier) fingerprints(any bool) ([][]byte, error) {
 		}
 	}
 
-	sort.Slice(fps, func(i, j int) bool {
-		return bytes.Compare(fps[i], fps[j]) < 0
-	})
+	slices.SortFunc(fps, bytes.Compare)
 
 	return fps, nil
 }

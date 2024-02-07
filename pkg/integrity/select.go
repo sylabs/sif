@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -7,9 +7,10 @@ package integrity
 
 import (
 	"bytes"
+	"cmp"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
 	"github.com/sylabs/sif/v2/pkg/sif"
@@ -20,21 +21,18 @@ var (
 	errNoGroupsFound = errors.New("no groups found")
 )
 
-// insertSorted inserts unique vals into the sorted slice s.
-func insertSorted(s []uint32, vals ...uint32) []uint32 {
-	for _, val := range vals {
-		val := val
+// insertSorted inserts v into the sorted slice s. If s already contains v, the original slice is
+// returned.
+func insertSorted[S ~[]E, E cmp.Ordered](s S, v E) S { //nolint:ireturn
+	return insertSortedFunc(s, v, cmp.Compare[E])
+}
 
-		i := sort.Search(len(s), func(i int) bool { return s[i] >= val })
-		if i < len(s) && s[i] == val {
-			continue
-		}
-
-		s = append(s, 0)
-		copy(s[i+1:], s[i:])
-		s[i] = val
+// insertSorted inserts v into the sorted slice s, using comparison function cmp. If s already
+// contains v, the original slice is returned.
+func insertSortedFunc[S ~[]E, E any](s S, v E, cmp func(E, E) int) S { //nolint:ireturn
+	if i, found := slices.BinarySearchFunc(s, v, cmp); !found {
+		return slices.Insert(s, i, v)
 	}
-
 	return s
 }
 
@@ -191,22 +189,9 @@ func getFingerprints(sigs []sif.Descriptor) ([][]byte, error) {
 			return nil, err
 		}
 
-		if len(fp) == 0 {
-			continue
+		if len(fp) > 0 {
+			fps = insertSortedFunc(fps, fp, bytes.Compare)
 		}
-
-		// Check if fingerprint is already in list.
-		i := sort.Search(len(fps), func(i int) bool {
-			return bytes.Compare(fps[i], fp) >= 0
-		})
-		if i < len(fps) && bytes.Equal(fps[i], fp) {
-			continue
-		}
-
-		// Insert into (sorted) list.
-		fps = append(fps, []byte{})
-		copy(fps[i+1:], fps[i:])
-		fps[i] = fp
 	}
 
 	return fps, nil
