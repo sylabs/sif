@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -459,7 +459,7 @@ func TestNewVerifier(t *testing.T) { //nolint:maintidx
 
 	kr := openpgp.EntityList{getTestEntity(t)}
 
-	cb := func(r VerifyResult) bool { return false }
+	cb := func(_ VerifyResult) bool { return false }
 
 	tests := []struct {
 		name          string
