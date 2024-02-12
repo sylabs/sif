@@ -10,6 +10,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 
 	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
@@ -141,20 +142,16 @@ func getGroupSignatures(f *sif.FileImage, groupID uint32, legacy bool) ([]sif.De
 // in the object group with identifier groupID. If no such object group is found, errGroupNotFound
 // is returned.
 func getGroupMinObjectID(f *sif.FileImage, groupID uint32) (uint32, error) {
-	minID := ^uint32(0)
+	var minID uint32 = math.MaxUint32
 
 	f.WithDescriptors(func(od sif.Descriptor) bool {
-		if od.GroupID() != groupID {
-			return false
-		}
-
-		if id := od.ID(); id < minID {
-			minID = id
+		if od.GroupID() == groupID {
+			minID = min(minID, od.ID())
 		}
 		return false
 	})
 
-	if minID == ^uint32(0) {
+	if minID == math.MaxUint32 {
 		return 0, errGroupNotFound
 	}
 	return minID, nil
