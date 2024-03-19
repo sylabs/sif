@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -12,7 +12,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
@@ -82,7 +82,7 @@ func TestOptSignGroupObjects(t *testing.T) {
 				for _, od := range gs.ods {
 					got = append(got, od.ID())
 				}
-				if want := tt.ids; !reflect.DeepEqual(got, want) {
+				if want := tt.ids; !slices.Equal(got, want) {
 					t.Errorf("got objects %v, want %v", got, want)
 				}
 			}
@@ -221,7 +221,7 @@ func TestNewGroupSigner(t *testing.T) {
 				for _, od := range s.ods {
 					got = append(got, od.ID())
 				}
-				if want := tt.wantObjects; !reflect.DeepEqual(got, want) {
+				if want := tt.wantObjects; !slices.Equal(got, want) {
 					t.Errorf("got objects %v, want %v", got, want)
 				}
 
@@ -561,7 +561,7 @@ func TestNewSigner(t *testing.T) {
 							got = append(got, od.ID())
 						}
 
-						if !reflect.DeepEqual(got, want) {
+						if !slices.Equal(got, want) {
 							t.Errorf("got objects %v, want %v", got, want)
 						}
 					}
