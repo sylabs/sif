@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2021, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -33,8 +33,6 @@ func TestLoadContainerFromPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := LoadContainerFromPath(tt.path, tt.opts...)
 			if err != nil {
@@ -66,8 +64,6 @@ func TestLoadContainer(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			rw, err := os.Open(filepath.Join(corpus, "one-group.sif"))
 			if err != nil {
