@@ -68,7 +68,6 @@ func TestOptSignGroupObjects(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			gs := groupSigner{f: twoGroupImage, id: tt.groupID}
 
@@ -195,7 +194,6 @@ func TestNewGroupSigner(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			en := newClearsignEncoder(getTestEntity(t), fixedTime)
 
@@ -339,7 +337,6 @@ func TestGroupSigner_Sign(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			di, err := tt.gs.sign(context.Background())
 			if (err != nil) != tt.wantErr {
@@ -534,7 +531,6 @@ func TestNewSigner(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			s, err := NewSigner(tt.fi, tt.opts...)
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
@@ -827,8 +823,6 @@ func TestSigner_Sign(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			b, err := os.ReadFile(filepath.Join(corpus, tt.inputFile))
 			if err != nil {

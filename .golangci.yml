@@ -6,6 +6,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
+    - copyloopvar
     - decorder
     - dogsled
     - dupl
@@ -31,6 +32,7 @@ linters:
     - grouper
     - ineffassign
     - interfacebloat
+    - intrange
     - ireturn
     - lll
     - maintidx

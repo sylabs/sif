@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -90,7 +90,6 @@ func TestNewLegacyDigest(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			d, err := newLegacyDigest(tt.ht, []byte(tt.text))
 			if got, want := err, tt.wantError; !errors.Is(got, want) {
@@ -156,7 +155,6 @@ func TestDigest_MarshalJSON(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			value, err := hex.DecodeString(tt.value)
 			if err != nil {
@@ -261,7 +259,6 @@ func TestDigest_UnmarshalJSON(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			var d digest
 
