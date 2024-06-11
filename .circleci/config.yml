@@ -106,7 +106,7 @@ jobs:
           command: curl -sSfL https://goreleaser.com/static/run | bash -s -- check
       - run:
           name: Test Release
-          command: curl -sSfL https://goreleaser.com/static/run | bash -s -- --snapshot --skip-publish
+          command: curl -sSfL https://goreleaser.com/static/run | bash -s -- --snapshot --skip=publish
 
   publish-release:
     executor: golang-latest
