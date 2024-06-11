@@ -11,6 +11,7 @@ linters:
     - dogsled
     - dupl
     - dupword
+    - err113
     - errcheck
     - errchkjson
     - errname
@@ -21,7 +22,6 @@ linters:
     - gocritic
     - godot
     - godox
-    - goerr113
     - gofumpt
     - goimports
     - gomodguard

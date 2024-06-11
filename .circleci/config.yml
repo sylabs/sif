@@ -6,10 +6,10 @@ orbs:
 executors:
   node:
     docker:
-      - image: node:20-slim
+      - image: node:22-slim
   golangci-lint:
     docker:
-      - image: golangci/golangci-lint:v1.57
+      - image: golangci/golangci-lint:v1.59
   golang-previous:
     docker:
       - image: golang:1.21
