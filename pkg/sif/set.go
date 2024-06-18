@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2024, Sylabs Inc. All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
@@ -12,6 +12,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 )
 
 // setOpts accumulates object set options.
@@ -149,6 +151,55 @@ func (f *FileImage) SetMetadata(id uint32, md encoding.BinaryMarshaler, opts ...
 		return fmt.Errorf("%w", err)
 	}
 
+	if err := rd.setExtra(md); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	rd.ModifiedAt = so.t.Unix()
+
+	if err := f.writeDescriptors(); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	f.h.ModifiedAt = so.t.Unix()
+
+	if err := f.writeHeader(); err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	return nil
+}
+
+// SetOCIBlobDigest updates the digest of the OCI blob object with id to h, according to opts.
+//
+// By default, the image/object modification times are set to the current time for
+// non-deterministic images, and unset otherwise. To override this, consider using
+// OptSetDeterministic or OptSetWithTime.
+func (f *FileImage) SetOCIBlobDigest(id uint32, h v1.Hash, opts ...SetOpt) error {
+	rd, err := f.getDescriptor(WithID(id))
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+
+	if got := rd.DataType; got != DataOCIRootIndex && got != DataOCIBlob {
+		return &unexpectedDataTypeError{got, []DataType{DataOCIRootIndex, DataOCIBlob}}
+	}
+
+	so := setOpts{}
+
+	if !f.isDeterministic() {
+		so.t = time.Now()
+	}
+
+	for _, opt := range opts {
+		if err := opt(&so); err != nil {
+			return fmt.Errorf("%w", err)
+		}
+	}
+
+	md := &ociBlob{
+		digest: h,
+	}
 	if err := rd.setExtra(md); err != nil {
 		return fmt.Errorf("%w", err)
 	}
