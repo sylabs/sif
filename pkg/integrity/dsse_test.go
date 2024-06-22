@@ -17,8 +17,8 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
-	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/sigstore/sigstore/pkg/signature"
+	"github.com/sigstore/sigstore/pkg/signature/dsse"
 	"github.com/sigstore/sigstore/pkg/signature/options"
 )
 
@@ -81,10 +81,7 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := bytes.Buffer{}
 
-			en, err := newDSSEEncoder(tt.signers, tt.signOpts...)
-			if err != nil {
-				t.Fatal(err)
-			}
+			en := newDSSEEncoder(tt.signers, tt.signOpts...)
 
 			ht, err := en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
 			if got, want := err, tt.wantErr; (got != nil) != want {
@@ -105,28 +102,30 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 
 // corruptPayloadType corrupts the payload type of e and re-signs the envelope. The result is a
 // cryptographically valid envelope with an unexpected payload types.
-func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsse.Envelope) {
+func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsseEnvelope) {
 	t.Helper()
 
-	body, err := e.DecodeB64Payload()
+	body, err := e.DecodedPayload()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	bad, err := en.es.SignPayload(context.Background(), "bad", body)
+	bad, err := dsse.WrapMultiSigner("bad", en.ss...).SignMessage(bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	*e = *bad
+	if err := json.Unmarshal(bad, e); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // corruptPayload corrupts the payload in e. The result is that the signature(s) in e do not match
 // the payload.
-func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
+func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsseEnvelope) {
 	t.Helper()
 
-	body, err := e.DecodeB64Payload()
+	body, err := e.DecodedPayload()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +135,7 @@ func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
 
 // corruptSignatures corrupts the signature(s) in e. The result is that the signature(s) in e do
 // not match the payload.
-func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dsse.Envelope) {
+func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dsseEnvelope) {
 	t.Helper()
 
 	for i, sig := range e.Signatures {
@@ -156,7 +155,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		name        string
 		signers     []signature.Signer
 		signOpts    []signature.SignOption
-		corrupter   func(*testing.T, *dsseEncoder, *dsse.Envelope)
+		corrupter   func(*testing.T, *dsseEncoder, *dsseEnvelope)
 		de          *dsseDecoder
 		wantErr     error
 		wantMessage string
@@ -185,8 +184,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA256),
 			),
-			wantErr:  errDSSEVerifyEnvelopeFailed,
-			wantKeys: []crypto.PublicKey{},
+			wantErr: errDSSEVerifyEnvelopeFailed,
 		},
 		{
 			name: "CorruptSignatures",
@@ -197,8 +195,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA256),
 			),
-			wantErr:  errDSSEVerifyEnvelopeFailed,
-			wantKeys: []crypto.PublicKey{},
+			wantErr: errDSSEVerifyEnvelopeFailed,
 		},
 		{
 			name: "Multi_SHA256",
@@ -321,10 +318,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := bytes.Buffer{}
 
-			en, err := newDSSEEncoder(tt.signers, tt.signOpts...)
-			if err != nil {
-				t.Fatal(err)
-			}
+			en := newDSSEEncoder(tt.signers, tt.signOpts...)
 
 			// Sign and encode message.
 			h, err := en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
@@ -334,7 +328,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 
 			// Introduce corruption, if applicable.
 			if tt.corrupter != nil {
-				var e dsse.Envelope
+				var e dsseEnvelope
 				if err := json.Unmarshal(b.Bytes(), &e); err != nil {
 					t.Fatal(err)
 				}

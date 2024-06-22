@@ -337,11 +337,7 @@ func NewSigner(f *sif.FileImage, opts ...SignerOpt) (*Signer, error) {
 	var en encoder
 	switch {
 	case so.ss != nil:
-		var err error
-		en, err = newDSSEEncoder(so.ss)
-		if err != nil {
-			return nil, fmt.Errorf("integrity: %w", err)
-		}
+		en = newDSSEEncoder(so.ss)
 	case so.e != nil:
 		timeFunc := time.Now
 		if so.timeFunc != nil {
