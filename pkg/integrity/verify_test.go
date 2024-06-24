@@ -1069,7 +1069,6 @@ func TestVerifier_Verify(t *testing.T) {
 			testCallback:    true,
 			wantCBSignature: sigPGP,
 			wantCBVerified:  verifiedPGP,
-			wantCBKeys:      []crypto.PublicKey{},
 			wantCBEntity:    e,
 		},
 		{
@@ -1081,7 +1080,6 @@ func TestVerifier_Verify(t *testing.T) {
 			testCallback:    true,
 			ignoreError:     true,
 			wantCBSignature: sigPGP,
-			wantCBKeys:      []crypto.PublicKey{},
 			wantCBEntity:    nil,
 			wantCBErr:       &SignatureNotValidError{ID: 3},
 		},
