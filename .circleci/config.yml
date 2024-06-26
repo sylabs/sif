@@ -16,6 +16,9 @@ executors:
   golang-latest:
     docker:
       - image: golang:1.22
+  golang-next:
+    docker:
+      - image: golang:1.23-rc
 
 jobs:
   lint-markdown:
@@ -132,11 +135,11 @@ workflows:
       - build-source:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest"]
+              e: ["golang-previous", "golang-latest", "golang-next"]
       - unit-test:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest"]
+              e: ["golang-previous", "golang-latest", "golang-next"]
       - release-test
 
   tagged-release:
