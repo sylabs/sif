@@ -195,6 +195,99 @@ func TestDeleteObject(t *testing.T) {
 	}
 }
 
+func TestDeleteObjects(t *testing.T) {
+	tests := []struct {
+		name       string
+		createOpts []CreateOpt
+		fn         DescriptorSelectorFunc
+		opts       []DeleteOpt
+		wantErr    error
+	}{
+		{
+			name: "ErrObjectNotFound",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+			},
+			fn:      WithID(1),
+			wantErr: ErrObjectNotFound,
+		},
+		{
+			name: "NilSelectFunc",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			fn:      nil,
+			wantErr: errNilSelectFunc,
+		},
+		{
+			name: "DataType",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			fn: WithDataType(DataGeneric),
+		},
+		{
+			name: "DataTypeCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			fn: WithDataType(DataGeneric),
+			opts: []DeleteOpt{
+				OptDeleteCompact(true),
+			},
+		},
+		{
+			name: "PrimaryPartitionCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataPartition, []byte{0xfa, 0xce},
+						OptPartitionMetadata(FsSquash, PartPrimSys, "386"),
+					),
+				),
+			},
+			fn: WithPartitionType(PartPrimSys),
+			opts: []DeleteOpt{
+				OptDeleteCompact(true),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var b Buffer
+
+			f, err := CreateContainer(&b, tt.createOpts...)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if got, want := f.DeleteObjects(tt.fn, tt.opts...), tt.wantErr; !errors.Is(got, want) {
+				t.Errorf("got error %v, want %v", got, want)
+			}
+
+			if err := f.UnloadContainer(); err != nil {
+				t.Error(err)
+			}
+
+			g := goldie.New(t, goldie.WithTestNameForDir(true))
+			g.Assert(t, tt.name, b.Bytes())
+		})
+	}
+}
+
 func TestDeleteObjectAndAddObject(t *testing.T) {
 	tests := []struct {
 		name string
