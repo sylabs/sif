@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2024, Sylabs Inc. All rights reserved.
 // Copyright (c) 2017, SingularityWare, LLC. All rights reserved.
 // Copyright (c) 2017, Yannick Cote <yhcote@gmail.com> All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
@@ -8,32 +8,16 @@
 package sif
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"time"
 )
 
-// isLast return true if the data object associated with d is the last in f.
-func (f *FileImage) isLast(d *rawDescriptor) bool {
-	isLast := true
-
-	end := d.Offset + d.Size
-	f.WithDescriptors(func(d Descriptor) bool {
-		isLast = d.Offset()+d.Size() <= end
-		return !isLast
-	})
-
-	return isLast
-}
-
 // zeroReader is an io.Reader that returns a stream of zero-bytes.
 type zeroReader struct{}
 
 func (zeroReader) Read(b []byte) (int, error) {
-	for i := range b {
-		b[i] = 0
-	}
+	clear(b)
 	return len(b), nil
 }
 
@@ -45,13 +29,6 @@ func (f *FileImage) zero(d *rawDescriptor) error {
 
 	_, err := io.CopyN(f.rw, zeroReader{}, d.Size)
 	return err
-}
-
-// truncateAt truncates f at the start of the padded data object described by d.
-func (f *FileImage) truncateAt(d *rawDescriptor) error {
-	start := d.Offset + d.Size - d.SizeWithPadding
-
-	return f.rw.Truncate(start)
 }
 
 // deleteOpts accumulates object deletion options.
@@ -97,8 +74,6 @@ func OptDeleteWithTime(t time.Time) DeleteOpt {
 	}
 }
 
-var errCompactNotImplemented = errors.New("compact not implemented for non-last object")
-
 // DeleteObject deletes the data object with id, according to opts.
 //
 // To zero the data region of the deleted object, use OptDeleteZero. To compact the file following
@@ -125,22 +100,10 @@ func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
 		return fmt.Errorf("%w", err)
 	}
 
-	if do.compact && !f.isLast(d) {
-		return fmt.Errorf("%w", errCompactNotImplemented)
-	}
-
 	if do.zero {
 		if err := f.zero(d); err != nil {
 			return fmt.Errorf("%w", err)
 		}
-	}
-
-	if do.compact {
-		if err := f.truncateAt(d); err != nil {
-			return fmt.Errorf("%w", err)
-		}
-
-		f.h.DataSize -= d.SizeWithPadding
 	}
 
 	f.h.DescriptorsFree++
@@ -155,6 +118,14 @@ func (f *FileImage) DeleteObject(id uint32, opts ...DeleteOpt) error {
 
 	// Reset rawDescripter with empty struct
 	*d = rawDescriptor{}
+
+	if do.compact {
+		f.h.DataSize = f.calculatedDataSize()
+
+		if err := f.rw.Truncate(f.h.DataOffset + f.h.DataSize); err != nil {
+			return fmt.Errorf("%w", err)
+		}
+	}
 
 	if err := f.writeDescriptors(); err != nil {
 		return fmt.Errorf("%w", err)

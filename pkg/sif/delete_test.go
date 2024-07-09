@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -17,7 +17,7 @@ func TestDeleteObject(t *testing.T) {
 	tests := []struct {
 		name       string
 		createOpts []CreateOpt
-		id         uint32
+		ids        []uint32
 		opts       []DeleteOpt
 		wantErr    error
 	}{
@@ -26,21 +26,8 @@ func TestDeleteObject(t *testing.T) {
 			createOpts: []CreateOpt{
 				OptCreateDeterministic(),
 			},
-			id:      1,
+			ids:     []uint32{1},
 			wantErr: ErrObjectNotFound,
-		},
-		{
-			name: "Zero",
-			createOpts: []CreateOpt{
-				OptCreateDeterministic(),
-				OptCreateWithDescriptors(
-					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
-				),
-			},
-			id: 1,
-			opts: []DeleteOpt{
-				OptDeleteZero(true),
-			},
 		},
 		{
 			name: "Compact",
@@ -48,22 +35,95 @@ func TestDeleteObject(t *testing.T) {
 				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
 				),
 			},
-			id: 1,
+			ids: []uint32{1, 2},
 			opts: []DeleteOpt{
 				OptDeleteCompact(true),
 			},
 		},
 		{
-			name: "ZeroCompact",
+			name: "OneZero",
 			createOpts: []CreateOpt{
 				OptCreateDeterministic(),
 				OptCreateWithDescriptors(
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
 				),
 			},
-			id: 1,
+			ids: []uint32{1},
+			opts: []DeleteOpt{
+				OptDeleteZero(true),
+			},
+		},
+		{
+			name: "OneCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			ids: []uint32{1},
+			opts: []DeleteOpt{
+				OptDeleteCompact(true),
+			},
+		},
+		{
+			name: "OneZeroCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			ids: []uint32{1},
+			opts: []DeleteOpt{
+				OptDeleteZero(true),
+				OptDeleteCompact(true),
+			},
+		},
+		{
+			name: "TwoZero",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			ids: []uint32{2},
+			opts: []DeleteOpt{
+				OptDeleteZero(true),
+			},
+		},
+		{
+			name: "TwoCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			ids: []uint32{2},
+			opts: []DeleteOpt{
+				OptDeleteCompact(true),
+			},
+		},
+		{
+			name: "TwoZeroCompact",
+			createOpts: []CreateOpt{
+				OptCreateDeterministic(),
+				OptCreateWithDescriptors(
+					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
+					getDescriptorInput(t, DataGeneric, []byte{0xfe, 0xed}),
+				),
+			},
+			ids: []uint32{2},
 			opts: []DeleteOpt{
 				OptDeleteZero(true),
 				OptDeleteCompact(true),
@@ -78,7 +138,7 @@ func TestDeleteObject(t *testing.T) {
 				),
 				OptCreateWithTime(time.Unix(946702800, 0)),
 			},
-			id: 1,
+			ids: []uint32{1},
 			opts: []DeleteOpt{
 				OptDeleteDeterministic(),
 			},
@@ -91,7 +151,7 @@ func TestDeleteObject(t *testing.T) {
 					getDescriptorInput(t, DataGeneric, []byte{0xfa, 0xce}),
 				),
 			},
-			id: 1,
+			ids: []uint32{1},
 			opts: []DeleteOpt{
 				OptDeleteWithTime(time.Unix(946702800, 0)),
 			},
@@ -106,7 +166,7 @@ func TestDeleteObject(t *testing.T) {
 					),
 				),
 			},
-			id: 1,
+			ids: []uint32{1},
 		},
 	}
 
@@ -119,8 +179,10 @@ func TestDeleteObject(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if got, want := f.DeleteObject(tt.id, tt.opts...), tt.wantErr; !errors.Is(got, want) {
-				t.Errorf("got error %v, want %v", got, want)
+			for _, id := range tt.ids {
+				if got, want := f.DeleteObject(id, tt.opts...), tt.wantErr; !errors.Is(got, want) {
+					t.Errorf("got error %v, want %v", got, want)
+				}
 			}
 
 			if err := f.UnloadContainer(); err != nil {
