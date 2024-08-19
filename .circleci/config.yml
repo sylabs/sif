@@ -12,13 +12,10 @@ executors:
       - image: golangci/golangci-lint:v1.59
   golang-previous:
     docker:
-      - image: golang:1.21
+      - image: golang:1.22
   golang-latest:
     docker:
-      - image: golang:1.22
-  golang-next:
-    docker:
-      - image: golang:1.23-rc
+      - image: golang:1.23
 
 jobs:
   lint-markdown:
@@ -45,11 +42,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Go Mod Tidy
-          command: go mod tidy
-      - run:
           name: Check Module Tidiness
-          command: git diff --exit-code -- go.mod go.sum
+          command: go mod tidy -diff
 
   check-test-corpus:
     executor: golang-latest
@@ -135,11 +129,11 @@ workflows:
       - build-source:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-next"]
+              e: ["golang-previous", "golang-latest"]
       - unit-test:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-next"]
+              e: ["golang-previous", "golang-latest"]
       - release-test
 
   tagged-release:
