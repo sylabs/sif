@@ -29,6 +29,7 @@ func (c *command) getSetPrim() *cobra.Command {
 				return fmt.Errorf("while converting id: %w", err)
 			}
 
+			//nolint:gosec // ParseUint above ensures id is safe to cast to uint32.
 			return c.app.Setprim(args[1], uint32(id))
 		},
 		DisableFlagsInUseLine: true,
