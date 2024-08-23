@@ -97,7 +97,7 @@ func (f *FileImage) writeDataObject(i int, di DescriptorInput, t time.Time) erro
 	}
 
 	// We derive the ID from i, so make sure the ID will not overflow.
-	if i >= math.MaxInt32 {
+	if int64(i) >= math.MaxUint32 {
 		return errObjectIDOverflow
 	}
 
@@ -233,8 +233,16 @@ func OptCreateWithCloseOnUnload(b bool) CreateOpt {
 	}
 }
 
+var errDescriptorCapacityNotSupported = errors.New("descriptor capacity not supported")
+
 // createContainer creates a new SIF container file in rw, according to opts.
 func createContainer(rw ReadWriter, co createOpts) (*FileImage, error) {
+	// The supported number of descriptors is limited by the unsigned 32-bit ID field in each
+	// rawDescriptor.
+	if co.descriptorCapacity >= math.MaxUint32 {
+		return nil, errDescriptorCapacityNotSupported
+	}
+
 	rds := make([]rawDescriptor, co.descriptorCapacity)
 	rdsSize := int64(binary.Size(rds))
 

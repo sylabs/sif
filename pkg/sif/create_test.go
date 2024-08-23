@@ -187,6 +187,13 @@ func TestCreateContainerAtPath(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "ErrDescriptorCapacityNotSupported",
+			opts: []CreateOpt{
+				OptCreateWithDescriptorCapacity(math.MaxUint32),
+			},
+			wantErr: errDescriptorCapacityNotSupported,
+		},
+		{
 			name: "ErrInsufficientCapacity",
 			opts: []CreateOpt{
 				OptCreateDeterministic(),
