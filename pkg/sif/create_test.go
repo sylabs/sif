@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2018-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -7,6 +7,7 @@ package sif
 
 import (
 	"errors"
+	"math"
 	"os"
 	"testing"
 	"time"
@@ -15,27 +16,34 @@ import (
 )
 
 func TestNextAligned(t *testing.T) {
-	cases := []struct {
-		name     string
-		offset   int64
-		align    int
-		expected int64
+	tests := []struct {
+		name       string
+		offset     int64
+		align      int
+		wantOffset int64
+		wantErr    error
 	}{
-		{name: "align 0 to 0", offset: 0, align: 0, expected: 0},
-		{name: "align 1 to 0", offset: 1, align: 0, expected: 1},
-		{name: "align 0 to 1024", offset: 0, align: 1024, expected: 0},
-		{name: "align 1 to 1024", offset: 1, align: 1024, expected: 1024},
-		{name: "align 1023 to 1024", offset: 1023, align: 1024, expected: 1024},
-		{name: "align 1024 to 1024", offset: 1024, align: 1024, expected: 1024},
-		{name: "align 1025 to 1024", offset: 1025, align: 1024, expected: 2048},
+		{name: "align 0 to 0", offset: 0, align: 0, wantOffset: 0},
+		{name: "align 1 to 0", offset: 1, align: 0, wantOffset: 1},
+		{name: "align 0 to 1024", offset: 0, align: 1024, wantOffset: 0},
+		{name: "align 1 to 1024", offset: 1, align: 1024, wantOffset: 1024},
+		{name: "align 1023 to 1024", offset: 1023, align: 1024, wantOffset: 1024},
+		{name: "align 1024 to 1024", offset: 1024, align: 1024, wantOffset: 1024},
+		{name: "align 1025 to 1024", offset: 1025, align: 1024, wantOffset: 2048},
+		{name: "align max to 1024", offset: math.MaxInt64, align: 1024, wantErr: errAlignmentOverflow},
+		{name: "align max to max", offset: math.MaxInt64, align: math.MaxInt - 1, wantErr: errAlignmentOverflow},
 	}
 
-	for _, tc := range cases {
-		actual := nextAligned(tc.offset, tc.align)
-		if actual != tc.expected {
-			t.Errorf("nextAligned case: %q, offset: %d, align: %d, expecting: %d, actual: %d\n",
-				tc.name, tc.offset, tc.align, tc.expected, actual)
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			offset, err := nextAligned(tt.offset, tt.align)
+			if got, want := err, tt.wantErr; !errors.Is(got, want) {
+				t.Errorf("got error %v, want %v", got, want)
+			}
+			if got, want := offset, tt.wantOffset; got != want {
+				t.Errorf("got offset %v, want %v", got, want)
+			}
+		})
 	}
 }
 
