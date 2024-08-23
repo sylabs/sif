@@ -97,7 +97,7 @@ func (f *FileImage) writeDataObject(i int, di DescriptorInput, t time.Time) erro
 	}
 
 	// We derive the ID from i, so make sure the ID will not overflow.
-	if i >= math.MaxInt32 {
+	if int64(i) >= math.MaxUint32 {
 		return errObjectIDOverflow
 	}
 
