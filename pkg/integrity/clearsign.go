@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -11,7 +11,6 @@ import (
 	"crypto"
 	"errors"
 	"io"
-	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/clearsign"
@@ -25,14 +24,12 @@ type clearsignEncoder struct {
 	config *packet.Config
 }
 
-// newClearsignEncoder returns an encoder that signs messages in clear-sign format using entity e.
-// If timeFunc is not nil, it is used to generate signature timestamps.
-func newClearsignEncoder(e *openpgp.Entity, timeFunc func() time.Time) *clearsignEncoder {
+// newClearsignEncoder returns an encoder that signs messages in clear-sign format using entity e,
+// according to config.
+func newClearsignEncoder(e *openpgp.Entity, config *packet.Config) *clearsignEncoder {
 	return &clearsignEncoder{
-		e: e,
-		config: &packet.Config{
-			Time: timeFunc,
-		},
+		e:      e,
+		config: config,
 	}
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -294,6 +294,7 @@ func generateImages() error {
 			opts = append(opts,
 				integrity.OptSignWithTime(func() time.Time { return time.Date(2020, 6, 30, 0, 1, 56, 0, time.UTC) }),
 				integrity.OptSignDeterministic(),
+				integrity.OptSignWithoutPGPSignatureSalt(),
 			)
 
 			s, err := integrity.NewSigner(f, opts...)

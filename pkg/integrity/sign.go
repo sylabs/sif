@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sylabs/sif/v2/pkg/sif"
 )
@@ -179,13 +180,14 @@ func (gs *groupSigner) sign(ctx context.Context) (sif.DescriptorInput, error) {
 }
 
 type signOpts struct {
-	ss            []signature.Signer
-	e             *openpgp.Entity
-	groupIDs      []uint32
-	objectIDs     [][]uint32
-	timeFunc      func() time.Time
-	deterministic bool
-	ctx           context.Context //nolint:containedctx
+	ss                      []signature.Signer
+	e                       *openpgp.Entity
+	groupIDs                []uint32
+	objectIDs               [][]uint32
+	timeFunc                func() time.Time
+	deterministic           bool
+	ctx                     context.Context //nolint:containedctx
+	withoutPGPSignatureSalt bool
 }
 
 // SignerOpt are used to configure so.
@@ -253,6 +255,16 @@ func OptSignDeterministic() SignerOpt {
 func OptSignWithContext(ctx context.Context) SignerOpt {
 	return func(so *signOpts) error {
 		so.ctx = ctx
+		return nil
+	}
+}
+
+// OptSignWithoutPGPSignatureSalt disables the addition of a salt notation for v4 and v5 PGP keys.
+// While this increases determinism, it should be used with caution as the salt notation increases
+// protection for certain kinds of attacks.
+func OptSignWithoutPGPSignatureSalt() SignerOpt {
+	return func(so *signOpts) error {
+		so.withoutPGPSignatureSalt = true
 		return nil
 	}
 }
@@ -339,11 +351,10 @@ func NewSigner(f *sif.FileImage, opts ...SignerOpt) (*Signer, error) {
 	case so.ss != nil:
 		en = newDSSEEncoder(so.ss)
 	case so.e != nil:
-		timeFunc := time.Now
-		if so.timeFunc != nil {
-			timeFunc = so.timeFunc
-		}
-		en = newClearsignEncoder(so.e, timeFunc)
+		en = newClearsignEncoder(so.e, &packet.Config{
+			Time:                                  so.timeFunc,
+			NonDeterministicSignaturesViaNotation: packet.BoolPointer(!so.withoutPGPSignatureSalt),
+		})
 		commonOpts = append(commonOpts, optSignGroupFingerprint(so.e.PrimaryKey.Fingerprint))
 	default:
 		return nil, fmt.Errorf("integrity: %w", ErrNoKeyMaterial)
