@@ -538,9 +538,9 @@ func NewVerifier(f *sif.FileImage, opts ...VerifierOpt) (*Verifier, error) {
 }
 
 // fingerprints returns a sorted list of unique fingerprints of entities participating in the
-// verification tasks in v. If any is true, entities involved in at least one task are included.
-// Otherwise, only entities participatinging in all tasks are included.
-func (v *Verifier) fingerprints(any bool) ([][]byte, error) {
+// verification tasks in v. If anyTask is true, entities involved in at least one task are
+// included. Otherwise, only entities participatinging in all tasks are included.
+func (v *Verifier) fingerprints(anyTask bool) ([][]byte, error) {
 	m := make(map[string]int)
 
 	// Build up a map containing fingerprints, and the number of tasks they are participating in.
@@ -563,7 +563,7 @@ func (v *Verifier) fingerprints(any bool) ([][]byte, error) {
 	// Build up list of fingerprints.
 	var fps [][]byte
 	for fp, n := range m {
-		if any || len(v.tasks) == n {
+		if anyTask || len(v.tasks) == n {
 			b, err := hex.DecodeString(fp)
 			if err != nil {
 				panic(err)
