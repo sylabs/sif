@@ -21,14 +21,12 @@ var corpus = filepath.Join("..", "..", "test", "images")
 
 func Test_Unmount(t *testing.T) {
 	if _, err := exec.LookPath("squashfuse"); err != nil {
-		t.Skip(" not found, skipping mount tests")
+		t.Skip("squashfuse not found, skipping mount tests")
 	}
 	fusermountPath, err := exec.LookPath("fusermount")
 	if err != nil {
-		t.Skip(" not found, skipping mount tests")
+		t.Skip("fusermount not found, skipping mount tests")
 	}
-
-	path := t.TempDir()
 
 	tests := []struct {
 		name          string
@@ -41,14 +39,14 @@ func Test_Unmount(t *testing.T) {
 		{
 			name:          "Mounted",
 			mountSIF:      filepath.Join(corpus, "one-group.sif"),
-			mountPath:     path,
+			mountPath:     t.TempDir(),
 			wantErr:       false,
 			wantUnmounted: true,
 		},
 		{
 			name:      "NotMounted",
 			mountSIF:  "",
-			mountPath: path,
+			mountPath: t.TempDir(),
 			wantErr:   true,
 		},
 		{
@@ -60,14 +58,14 @@ func Test_Unmount(t *testing.T) {
 		{
 			name:      "FusermountBare",
 			mountSIF:  "",
-			mountPath: path,
+			mountPath: t.TempDir(),
 			opts:      []UnmountOpt{OptUnmountFusermountPath("fusermount")},
 			wantErr:   true,
 		},
 		{
 			name:          "FusermountValid",
 			mountSIF:      filepath.Join(corpus, "one-group.sif"),
-			mountPath:     path,
+			mountPath:     t.TempDir(),
 			opts:          []UnmountOpt{OptUnmountFusermountPath(fusermountPath)},
 			wantErr:       false,
 			wantUnmounted: true,
@@ -76,7 +74,7 @@ func Test_Unmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.mountSIF != "" {
-				err := Mount(context.Background(), tt.mountSIF, path)
+				err := Mount(context.Background(), tt.mountSIF, tt.mountPath)
 				if err != nil {
 					t.Fatal(err)
 				}
