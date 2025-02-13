@@ -1,6 +1,6 @@
 module github.com/sylabs/sif/v2
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/ProtonMail/go-crypto v1.1.5

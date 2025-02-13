@@ -9,16 +9,13 @@ executors:
       - image: node:22-slim
   golangci-lint:
     docker:
-      - image: golangci/golangci-lint:v1.63
+      - image: golangci/golangci-lint:v1.64
   golang-previous:
     docker:
-      - image: golang:1.22
+      - image: golang:1.23
   golang-latest:
     docker:
-      - image: golang:1.23
-  golang-next:
-    docker:
-      - image: golang:1.24-rc
+      - image: golang:1.24
 
 jobs:
   lint-markdown:
@@ -132,11 +129,11 @@ workflows:
       - build-source:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-next"]
+              e: ["golang-previous", "golang-latest"]
       - unit-test:
           matrix:
             parameters:
-              e: ["golang-previous", "golang-latest", "golang-next"]
+              e: ["golang-previous", "golang-latest"]
       - release-test
 
   tagged-release:
