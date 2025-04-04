@@ -61,11 +61,11 @@ builds:
 
 archives:
   - id: darwin-archives
-    builds:
+    ids:
       - darwin-builds
 
   - id: linux-archives
-    builds:
+    ids:
       - linux-builds
 
 sboms:
