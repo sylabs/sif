@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2024, Sylabs Inc. All rights reserved.
+// Copyright (c) 2022-2025, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -7,7 +7,6 @@ package integrity
 
 import (
 	"bytes"
-	"context"
 	"crypto"
 	"encoding/base64"
 	"encoding/json"
@@ -83,7 +82,7 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 
 			en := newDSSEEncoder(tt.signers, tt.signOpts...)
 
-			ht, err := en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
+			ht, err := en.signMessage(t.Context(), &b, strings.NewReader(testMessage))
 			if got, want := err, tt.wantErr; (got != nil) != want {
 				t.Fatalf("got error %v, wantErr %v", got, want)
 			}
@@ -321,7 +320,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 			en := newDSSEEncoder(tt.signers, tt.signOpts...)
 
 			// Sign and encode message.
-			h, err := en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
+			h, err := en.signMessage(t.Context(), &b, strings.NewReader(testMessage))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -343,7 +342,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 
 			// Decode and verify message.
 			var vr VerifyResult
-			message, err := tt.de.verifyMessage(context.Background(), bytes.NewReader(b.Bytes()), h, &vr)
+			message, err := tt.de.verifyMessage(t.Context(), bytes.NewReader(b.Bytes()), h, &vr)
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
