@@ -7,7 +7,6 @@ package user
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -74,13 +73,13 @@ func Test_Unmount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.mountSIF != "" {
-				err := Mount(context.Background(), tt.mountSIF, tt.mountPath)
+				err := Mount(t.Context(), tt.mountSIF, tt.mountPath)
 				if err != nil {
 					t.Fatal(err)
 				}
 			}
 
-			err := Unmount(context.Background(), tt.mountPath, tt.opts...)
+			err := Unmount(t.Context(), tt.mountPath, tt.opts...)
 
 			if err != nil && !tt.wantErr {
 				t.Errorf("Unexpected error: %s", err)

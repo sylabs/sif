@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2025, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -8,7 +8,6 @@ package integrity
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"crypto"
 	"errors"
 	"io"
@@ -54,7 +53,7 @@ func Test_clearsignEncoder_signMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			b := bytes.Buffer{}
 
-			ht, err := tt.en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
+			ht, err := tt.en.signMessage(t.Context(), &b, strings.NewReader(testMessage))
 			if got, want := err, tt.wantErr; (got != nil) != want {
 				t.Fatalf("got error %v, wantErr %v", got, want)
 			}
@@ -65,7 +64,7 @@ func Test_clearsignEncoder_signMessage(t *testing.T) {
 				}
 
 				var vr VerifyResult
-				b, err := tt.de.verifyMessage(context.Background(), bytes.NewReader(b.Bytes()), ht, &vr)
+				b, err := tt.de.verifyMessage(t.Context(), bytes.NewReader(b.Bytes()), ht, &vr)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -180,7 +179,7 @@ func Test_clearsignDecoder_verifyMessage(t *testing.T) {
 					Time:        fixedTime,
 				},
 			}
-			h, err := en.signMessage(context.Background(), &b, strings.NewReader(testMessage))
+			h, err := en.signMessage(t.Context(), &b, strings.NewReader(testMessage))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -196,7 +195,7 @@ func Test_clearsignDecoder_verifyMessage(t *testing.T) {
 
 			// Decode and verify message.
 			var vr VerifyResult
-			message, err := tt.de.verifyMessage(context.Background(), bytes.NewReader(b.Bytes()), h, &vr)
+			message, err := tt.de.verifyMessage(t.Context(), bytes.NewReader(b.Bytes()), h, &vr)
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Fatalf("got error %v, want %v", got, want)
