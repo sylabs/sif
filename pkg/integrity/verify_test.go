@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2024, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2025, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -161,7 +161,7 @@ func TestGroupVerifier_verify(t *testing.T) {
 			}
 
 			var vr VerifyResult
-			err := v.verifySignature(context.Background(), tt.sig, tt.de, &vr)
+			err := v.verifySignature(t.Context(), tt.sig, tt.de, &vr)
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
@@ -289,7 +289,7 @@ func TestLegacyGroupVerifier_verify(t *testing.T) {
 			}
 
 			var vr VerifyResult
-			err = v.verifySignature(context.Background(), tt.sig, tt.de, &vr)
+			err = v.verifySignature(t.Context(), tt.sig, tt.de, &vr)
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
@@ -427,7 +427,7 @@ func TestLegacyObjectVerifier_verify(t *testing.T) {
 			}
 
 			var vr VerifyResult
-			err = v.verifySignature(context.Background(), tt.sig, tt.de, &vr)
+			err = v.verifySignature(t.Context(), tt.sig, tt.de, &vr)
 
 			if got, want := err, tt.wantErr; !errors.Is(got, want) {
 				t.Errorf("got error %v, want %v", got, want)
