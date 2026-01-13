@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2025, Sylabs Inc. All rights reserved.
+// Copyright (c) 2020-2026, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -77,7 +77,7 @@ func TestOptSignGroupObjects(t *testing.T) {
 			}
 
 			if err == nil {
-				var got []uint32
+				got := make([]uint32, 0, len(gs.ods))
 				for _, od := range gs.ods {
 					got = append(got, od.ID())
 				}
@@ -557,7 +557,7 @@ func TestNewSigner(t *testing.T) {
 					if want, ok := tt.wantGroupObjects[groupID]; !ok {
 						t.Errorf("unexpected signer for group ID %v", groupID)
 					} else {
-						var got []uint32
+						got := make([]uint32, 0, len(signer.ods))
 						for _, od := range signer.ods {
 							got = append(got, od.ID())
 						}
