@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023, Sylabs Inc. All rights reserved.
+// Copyright (c) 2021-2026, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the
 // LICENSE file distributed with the sources of this project regarding your
 // rights to use or distribute this software.
@@ -52,10 +52,11 @@ func Test_command_getAdd(t *testing.T) {
 
 			cmd := c.getAdd()
 
-			args := []string{
+			args := make([]string, 0, 2+len(tt.flags))
+			args = append(args,
 				makeTestSIF(t, false),
 				filepath.Join("testdata", "input", "input.bin"),
-			}
+			)
 			args = append(args, tt.flags...)
 
 			runCommand(t, cmd, args, nil)
