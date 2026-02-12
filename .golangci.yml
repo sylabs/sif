@@ -61,6 +61,11 @@ linters:
       - common-false-positives
       - legacy
       - std-error-handling
+    rules:
+      - linters:
+          - revive
+        path: 'pkg/user/(.+)\.go'
+        text: "var-naming: avoid package names that conflict with Go standard library package names"
 
 formatters:
   enable:
