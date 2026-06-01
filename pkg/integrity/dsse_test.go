@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2025, Sylabs Inc. All rights reserved.
+// Copyright (c) 2022-2026, Sylabs Inc. All rights reserved.
 // This software is licensed under a 3-clause BSD license. Please consult the LICENSE.md file
 // distributed with the sources of this project regarding your rights to use or distribute this
 // software.
@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/sebdah/goldie/v2"
+	dssetypes "github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/sigstore/sigstore/pkg/signature"
 	"github.com/sigstore/sigstore/pkg/signature/dsse"
 	"github.com/sigstore/sigstore/pkg/signature/options"
@@ -101,10 +102,10 @@ func Test_dsseEncoder_signMessage(t *testing.T) {
 
 // corruptPayloadType corrupts the payload type of e and re-signs the envelope. The result is a
 // cryptographically valid envelope with an unexpected payload types.
-func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsseEnvelope) {
+func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dssetypes.Envelope) {
 	t.Helper()
 
-	body, err := e.DecodedPayload()
+	body, err := e.DecodeB64Payload()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,10 +122,10 @@ func corruptPayloadType(t *testing.T, en *dsseEncoder, e *dsseEnvelope) {
 
 // corruptPayload corrupts the payload in e. The result is that the signature(s) in e do not match
 // the payload.
-func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsseEnvelope) {
+func corruptPayload(t *testing.T, _ *dsseEncoder, e *dssetypes.Envelope) {
 	t.Helper()
 
-	body, err := e.DecodedPayload()
+	body, err := e.DecodeB64Payload()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +135,7 @@ func corruptPayload(t *testing.T, _ *dsseEncoder, e *dsseEnvelope) {
 
 // corruptSignatures corrupts the signature(s) in e. The result is that the signature(s) in e do
 // not match the payload.
-func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dsseEnvelope) {
+func corruptSignatures(t *testing.T, _ *dsseEncoder, e *dssetypes.Envelope) {
 	t.Helper()
 
 	for i, sig := range e.Signatures {
@@ -154,7 +155,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 		name        string
 		signers     []signature.Signer
 		signOpts    []signature.SignOption
-		corrupter   func(*testing.T, *dsseEncoder, *dsseEnvelope)
+		corrupter   func(*testing.T, *dsseEncoder, *dssetypes.Envelope)
 		de          *dsseDecoder
 		wantErr     error
 		wantMessage string
@@ -169,10 +170,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 			de: newDSSEDecoder(
 				getTestVerifier(t, "rsa-public.pem", crypto.SHA256),
 			),
-			wantErr: errDSSEUnexpectedPayloadType,
-			wantKeys: []crypto.PublicKey{
-				getTestPublicKey(t, "rsa-public.pem"),
-			},
+			wantErr: errDSSEVerifyEnvelopeFailed,
 		},
 		{
 			name: "CorruptPayload",
@@ -327,7 +325,7 @@ func Test_dsseDecoder_verifyMessage(t *testing.T) {
 
 			// Introduce corruption, if applicable.
 			if tt.corrupter != nil {
-				var e dsseEnvelope
+				var e dssetypes.Envelope
 				if err := json.Unmarshal(b.Bytes(), &e); err != nil {
 					t.Fatal(err)
 				}
